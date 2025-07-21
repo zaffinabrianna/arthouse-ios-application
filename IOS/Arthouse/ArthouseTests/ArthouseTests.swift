@@ -5,13 +5,13 @@
 //  Created by Roberto Chavez on 7/9/25.
 //
 
-import Testing
-@testable import Arthouse
+//import XCTest
+//@testable import Arthouse
 
-struct ArthouseTests {
+//struct ArthouseTests {
 
-    @Test func example() async throws {
+//  @Test func example() async throws {
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-    }
+// }
 
-}
+//}
