@@ -1,9 +1,3 @@
-###############################################################
-#   Note, remember to upload FIRST. If upload is successful,
-#   then update the sql database.
-#   Failure to do so will get us clapped.
-###############################################################
-
 #perform CRUD operations on post related items in the database (create, read, update, delete)
 
 from queryHelper import run_cud_query, run_read_multiple, run_read_single
@@ -18,21 +12,16 @@ from ArthouseDBSQLComands_MEDIA import create_audio, delete_media, get_media_by_
 # CREATE        POST
 # ----------------------
 
-def create_post(username, audio_id=None, post_description="", hashtags=None, created_at="CURRENT_TIMESTAMP"):
+def create_post(username, audio_id=None, post_description="", hashtags=None):
     try:
         query = """
-        INSERT INTO post (username, audio_id, post_description, created_at)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO post (username, audio_id, post_description)
+        VALUES (%s, %s, %s)
         """
-        run_cud_query(query, (username, audio_id, post_description, created_at))
-        
+        post_id = run_cud_query(query, (username, audio_id, post_description))
         # Get post_id for insertion into the hashtag table
-        get_id_query = "SELECT LAST_INSERT_ID()"
-        post_id = run_read_single(get_id_query, ())
         if post_id is None:
             raise Exception("Failed to retrieve post_id after insert.")
-        
-        post_id = post_id[0]  # Extract the integer value
         
         # Insert hashtags if any
         if hashtags:
@@ -394,3 +383,18 @@ def delete_comment(comment_id):
     except Exception as e:
         print(f"Failed to delete comment: {e}")
         return False
+    
+
+
+##############################################
+
+# TESTING STUFF
+
+##############################################
+
+# create_post(username, audio_id=None, post_description="", hashtags=None, created_at="CURRENT_TIMESTAMP"):
+
+# create_post("dog", post_description="Pucci on pack watch.", hashtags=["packwatch"])
+# like_post("Joe1", 13)
+# create_comment("Joe1", 13, "This post sucks!")
+# unlike_post("Joe1", 13)

@@ -21,8 +21,7 @@ CREATE TABLE IF NOT EXISTS follower_relationships (
     follower VARCHAR(36),
     followee VARCHAR(36),
     PRIMARY KEY (follower, followee),
-    FOREIGN KEY (follower) REFERENCES profile(username) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (followee) REFERENCES profile(username) ON UPDATE CASCADE ON DELETE CASCADE
+    FOREIGN KEY (follower) REFERENCES profile(username) ON UPDATE CASCADE ON DELETE CASCADE
 )ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS post (
@@ -159,6 +158,7 @@ BEGIN
   WHERE post_id = OLD.post_id;
 END;
 //
+
 
 
 DELIMITER ;

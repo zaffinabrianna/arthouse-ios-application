@@ -196,22 +196,13 @@ def update_profile(username, new_username=None, name=None, profile_picture_url=N
 
 def follow(follower_username, followee_username):
     try:
+        # Make sure both exist
+        existing = run_read_multiple(
+            "SELECT username FROM profile WHERE username IN (%s, %s)"
+            , (follower_username, followee_username))
+        if len(existing) < 2:
+            raise ValueError("Follower or followee does not exist.")
         query = "INSERT INTO follower_relationships (follower, followee) VALUES (%s, %s)"
-        # conn = get_connection()
-        # cursor = conn.cursor()
-        # cursor.execute(query, (follower_username, followee_username))
-        # # cursor.execute("""UPDATE profile                                                  #check if counts update by sql trigger, if so remove commented lines
-        # #                 SET follower_count = GREATEST(follower_count + 1, 0)
-        # #                 WHERE username = %s"""
-        # #                , (followee_username,))
-        # # cursor.execute("""UPDATE profile
-        # #                 SET following_count = GREATEST(following_count + 1, 0)
-        # #                 WHERE username = %s"""
-        # #                , (follower_username,))
-        # conn.commit()
-        # cursor.close()
-        # conn.close()
-
         run_cud_query(query, (follower_username, followee_username))
         return True
     except Exception as e:
@@ -291,11 +282,29 @@ def unfollow(follower_username, followee_username):
 # TESTING STUFF
 
 ##############################################
-#create_user("Joe", "iwanttodie@death.com", "joe")
-#update_user("Joe", new_username="Joel", password="soup")
-#print(get_all_users())
-#print(get_user_by_username("Joel"))
-#delete_user("Joel")
+
+# #test users
+# create_user("Joe1", "soup@borscht.com", "jojoPart4")   #must have existing user
+# create_user("Artismo", "Artismo@arthouse.com", "SuperArtisticPassword")
+# create_user("MichèleMouton", "M-Mouton@gmail.com", "queen_of_rally")
+# create_user("dog", "dog@dog.dog", "dog")
+
+# #test profiles
+# create_profile("JoeDaMAN", "Joe1", "URL HERE", "sql injection")
+# create_profile("Art-Lover-102", "Artismo", "URL HERE", "I love art!")
+# create_profile("Rally-God-123", "MichèleMouton", "URL HERE", "Michèle Hélène Raymonde Mouton (born 23 June 1951) is a French former rally driver. Competing in the World Rally Championship for the Audi factory team, she took four victories and finished runner-up in the drivers' world championship in 1982.")
+# create_profile("dog", "dog", "dog pic here", "dog")
+
+create_user("Jolyne", "jojo@jojo.joe", "joe")
+update_user("Jolyne", new_username="Jojo", password="soup")
+create_profile("Jolyne", "Jojo", "URL", "Jojo Reference Here")
+print(get_profile_by_username("Jojo"))
+print(get_profile_by_username("dog"))
+follow("Jojo", "dog")
+follow("dog", "Artismo")
+print(view_all_relationships())
+delete_user("Jojo")
+print(view_all_relationships())
 
 
 #TEST profile
@@ -309,6 +318,6 @@ def unfollow(follower_username, followee_username):
 
 #test Followers relationships
 
-print(run_read_multiple("SELECT * FROM profile"))
+#print(run_read_multiple("SELECT * FROM profile"))
 
 ###########################################
