@@ -1,24 +1,36 @@
-//
-//  ContentView.swift
-//  Arthouse
-//
-//  Created by Roberto Chavez on 7/9/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var authViewModel = AuthViewModel()
+    @State private var showSignUp = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        if authViewModel.isLoggedIn {
+            // placeholder for main app
+            VStack {
+                Text("Welcome!")
+                    .font(.title)
+                
+                if let user = authViewModel.currentUser {
+                    Text("Hello, \(user.name)!")
+                }
+                
+                Button("Logout") {
+                    authViewModel.logout()
+                }
+                .padding()
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
+        } else {
+            if showSignUp {
+                SignUpView(showSignIn: .constant(false))
+                    .environmentObject(authViewModel)
+            } else {
+                SignInView(showSignUp: $showSignUp)
+                    .environmentObject(authViewModel)
+            }
         }
-        .padding()
     }
-}
-
-#Preview {
-    ContentView()
 }
