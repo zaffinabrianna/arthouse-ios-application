@@ -1,10 +1,11 @@
 from mutagen import File
 from pathlib import Path
 from PIL import Image
+import os
 import subprocess, json
 
-import ArthouseGoogleCloudInterface as AGCI
-from queryHelper import run_cud_query, run_read_multiple, run_read_single
+import ArthouseGoogleCloudInterface as agci
+#from queryHelper import run_cud_query, run_read_multiple, run_read_single
 
 def get_photo_metadata(photo_path):
     with Image.open(photo_path) as img:
@@ -12,6 +13,9 @@ def get_photo_metadata(photo_path):
         return f"{width}x{height}"
 
 def get_video_metadata(video_path):
+    if not os.path.exists(video_path):
+        print(f"File not found: {video_path}")
+        return
     cmd = [
         'ffprobe', '-v', 'error',
         '-show_entries', 'format=duration',
@@ -43,15 +47,12 @@ def get_audio_metadata(audio_path):
     return duration, bitrate
 
 
-media_type = 'video'
-file_path = "video/MVI_1470.MOV"
-
-if media_type == 'photo':
-    resolution = get_photo_metadata(file_path)
-    # Insert into `photo` table using media_id + resolution
-elif media_type == 'video':
-    duration, resolution = get_video_metadata(file_path)
-    # Insert into `video` table using media_id, duration, resolution
-elif media_type == 'audio':
-    duration, bitrate = get_audio_metadata(file_path)
-    # Insert into `audio` table using media_id, duration, bitrate
+# if media_type == 'photo':
+#     resolution = get_photo_metadata(file_path)
+#     # Insert into `photo` table using media_id + resolution
+# elif media_type == 'video':
+#     duration, resolution = get_video_metadata(file_path)
+#     # Insert into `video` table using media_id, duration, resolution
+# elif media_type == 'audio':
+#     duration, bitrate = get_audio_metadata(file_path)
+#     # Insert into `audio` table using media_id, duration, bitrate

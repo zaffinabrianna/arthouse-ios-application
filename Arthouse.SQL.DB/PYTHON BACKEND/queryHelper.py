@@ -27,11 +27,13 @@ def run_cud_query(query, attributesTuple):
     cursor = conn.cursor()
     cursor.execute(query, attributesTuple)
     conn.commit()
+    last_id = cursor.lastrowid
     cursor.close()
     conn.close()
+    return last_id
 
 # runs queries to read singular items
-def run_read_single(query, attributesTuple):
+def run_read_single(query, attributesTuple=None):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(query, attributesTuple)
