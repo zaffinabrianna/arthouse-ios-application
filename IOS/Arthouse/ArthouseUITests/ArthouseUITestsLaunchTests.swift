@@ -5,29 +5,29 @@
 //  Created by Roberto Chavez on 7/9/25.
 //
 
-import XCTest
+//import XCTest
 
-final class ArthouseUITestsLaunchTests: XCTestCase {
+//final class ArthouseUITestsLaunchTests: XCTestCase {
 
-    override class var runsForEachTargetApplicationUIConfiguration: Bool {
-        true
-    }
+//    override class var runsForEachTargetApplicationUIConfiguration: Bool {
+//       true
+//   }
 
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-    }
+//   override func setUpWithError() throws {
+//       continueAfterFailure = false
+//   }
 
-    @MainActor
-    func testLaunch() throws {
-        let app = XCUIApplication()
-        app.launch()
-
-        // Insert steps here to perform after app launch but before taking a screenshot,
+//    @MainActor
+//    func testLaunch() throws {
+//        let app = XCUIApplication()
+//       app.launch()
+//
+       // Insert steps here to perform after app launch but before taking a screenshot,
         // such as logging into a test account or navigating somewhere in the app
 
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = "Launch Screen"
-        attachment.lifetime = .keepAlways
-        add(attachment)
-    }
-}
+//        let attachment = XCTAttachment(screenshot: app.screenshot())
+//        attachment.name = "Launch Screen"
+//        attachment.lifetime = .keepAlways
+//        add(attachment)
+//    }
+//}

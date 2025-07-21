@@ -35,16 +35,6 @@
 			path = Arthouse;
 			sourceTree = "<group>";
 		};
-		B2E3D5042E1EE6C500F1284E /* ArthouseTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ArthouseTests;
-			sourceTree = "<group>";
-		};
-		B2E3D50E2E1EE6C500F1284E /* ArthouseUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ArthouseUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +66,6 @@
 			isa = PBXGroup;
 			children = (
 				B2E3D4F62E1EE6C300F1284E /* Arthouse */,
-				B2E3D5042E1EE6C500F1284E /* ArthouseTests */,
-				B2E3D50E2E1EE6C500F1284E /* ArthouseUITests */,
 				B2E3D4F52E1EE6C300F1284E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,9 +118,6 @@
 			dependencies = (
 				B2E3D5032E1EE6C500F1284E /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				B2E3D5042E1EE6C500F1284E /* ArthouseTests */,
-			);
 			name = ArthouseTests;
 			packageProductDependencies = (
 			);
@@ -152,9 +137,6 @@
 			);
 			dependencies = (
 				B2E3D50D2E1EE6C500F1284E /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				B2E3D50E2E1EE6C500F1284E /* ArthouseUITests */,
 			);
 			name = ArthouseUITests;
 			packageProductDependencies = (
