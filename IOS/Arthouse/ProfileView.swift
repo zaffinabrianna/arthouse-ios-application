@@ -1,9 +1,8 @@
-
 //
 //  ProfileView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/21/25.
+//
 //
 
 import SwiftUI
@@ -45,9 +44,9 @@ struct ProfileView: View {
                 
                 Button(action: {
                     // TODO: open messages
-                    print("Message button tapped")
+                    print("Edit Button Tapped")
                 }) {
-                    Image(systemName: "message")
+                    Image(systemName: "edit")
                         .foregroundColor(.white)
                         .font(.system(size: 18))
                         .padding(12)
@@ -56,7 +55,7 @@ struct ProfileView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 50) // push down from status bar
+            .padding(.top, 10) // push down from status bar
             
             Spacer()
             
@@ -205,3 +204,4 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
 }
+
