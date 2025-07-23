@@ -1,8 +1,9 @@
+
 //
 //  ProfileView.swift
 //  Arthouse
 //
-//
+//  
 //
 
 import SwiftUI
@@ -26,32 +27,37 @@ struct ProfileView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // top section with back button and message
+            // Top Section
             HStack {
+                // Back button Functionality:
                 Button(action: {
                     // TODO: go back to previous screen
                     print("Back button tapped")
                 }) {
+                    // Back Button "<":
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.white)
-                        .font(.system(size: 20))
-                        .padding(12)
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
+                        .foregroundColor(.black) // Color of the arrow in button
+                        .font(.system(size: 20)) // Font size of back button
+                        .padding(12) // Size of the circle around the back button
+                        .background(Color.white.opacity(0.7)) // Color of back button bg
+                        .clipShape(Circle()) // Shape of the button
                 }
                 
                 Spacer()
                 
                 Button(action: {
-                    // TODO: open messages
+                    // Edit button Functionality:
+                    // TODO: Edit Profile Button (will go to the edit profile page)
                     print("Edit Button Tapped")
                 }) {
-                    Image(systemName: "edit")
-                        .foregroundColor(.white)
-                        .font(.system(size: 18))
-                        .padding(12)
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(Circle())
+                    // Edit Button:
+                    Text("Edit")
+                        .foregroundColor(.black) // "Edit" text color
+                        .font(.system(size: 16, weight: .medium)) // Size and weight of font
+                        .padding(12) // Circle Size around edit button
+                        .padding(.horizontal, 8) // Make button longer
+                        .background(Color.white.opacity(0.7)) // Color of edit button background
+                        .cornerRadius(20) // Make button into an oval
                 }
             }
             .padding(.horizontal, 20)
