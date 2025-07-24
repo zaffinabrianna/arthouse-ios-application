@@ -62,7 +62,7 @@ struct FeedView: View {
                             RoundedRectangle(cornerRadius: 30)
                                 .fill(Color.blue.opacity(0.9))
                                 .frame(height: 90)
-                                .padding(.horizontal)
+                                .padding(.horizontal, -10)
                                 .shadow(radius: 4)
                             
                             HStack(spacing: 50) {
