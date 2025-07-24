@@ -1,10 +1,10 @@
+//
+// ProfileView.swift
+// ArtHouse
+//
+// Front-End: Brianna Zaffina
+// Back-End: Roberto Chavez & Jacob Nguyen
 
-//
-//  ProfileView.swift
-//  Arthouse
-//
-//  
-//
 
 import SwiftUI
 
@@ -13,187 +13,179 @@ struct ProfileView: View {
     @State private var followerCount = 100
     @State private var followingCount = 342
     
-    // TODO: get this from actual user data later
     let username = "@Username"
-    let bio = "This where the user writes their bio"
+    let bio = "This is where the user writes their bio"
     
-    // mock post data for now
     let posts = [
-        "underwater_photo", // placeholder image names
+        "underwater_photo",
         "sunset_photo",
         "art_photo",
         "nature_photo"
     ]
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Top Section
-            HStack {
-                // Back button Functionality:
-                Button(action: {
-                    // TODO: go back to previous screen
-                    print("Back button tapped")
-                }) {
-                    // Back Button "<":
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.black) // Color of the arrow in button
-                        .font(.system(size: 20)) // Font size of back button
-                        .padding(12) // Size of the circle around the back button
-                        .background(Color.white.opacity(0.7)) // Color of back button bg
-                        .clipShape(Circle()) // Shape of the button
-                }
+        GeometryReader { geometry in
+            ZStack(alignment: .top) {
+                // Blue background
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.blue]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                Spacer()
-                
-                Button(action: {
-                    // Edit button Functionality:
-                    // TODO: Edit Profile Button (will go to the edit profile page)
-                    print("Edit Button Tapped")
-                }) {
-                    // Edit Button:
-                    Text("Edit")
-                        .foregroundColor(.black) // "Edit" text color
-                        .font(.system(size: 16, weight: .medium)) // Size and weight of font
-                        .padding(12) // Circle Size around edit button
-                        .padding(.horizontal, 8) // Make button longer
-                        .background(Color.white.opacity(0.7)) // Color of edit button background
-                        .cornerRadius(20) // Make button into an oval
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 10) // push down from status bar
-            
-            Spacer()
-            
-            // main profile content
-            VStack(spacing: 0) {
-                // profile picture
-                ZStack {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 100, height: 100)
-                    
-                    // placeholder for profile image
-                    Image(systemName: "person.fill")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 50))
-                }
-                .padding(.bottom, 20)
-                
-                // Followers and Following Section:
-                HStack(spacing: 250) { // Spacing in between the followers and following
-                    VStack(spacing: 4) {
-                        Text("\(followerCount)")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.black)
-                        Text("Followers")
-                            .font(.system(size: 15))
-                            .foregroundColor(.gray)
+                // Edit and Back Buttons
+                HStack {
+                    //Back Button:
+                    Button(action: {
+                        print("Back button tapped")
+                    }) {
+                        // BACK BUTTON FRONT-END:
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.black) // Button Text Color
+                            .font(.system(size: 20)) // Button Text Font
+                            .padding(12) // Padding (helps make button bigger)
+                            .background(Color.white.opacity(0.7)) // Button Background
+                            .clipShape(Circle()) // Button Shape
                     }
                     
-                    VStack(spacing: 4) {
-                        Text("\(followingCount)")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.black)
-                        Text("Following")
-                            .font(.system(size: 15))
-                            .foregroundColor(.gray)
+                    Spacer()
+                    
+                    Button(action: {
+                        //Edit Button:
+                        print("Edit Button Tapped")
+                    }) {
+                        // EDIT BUTTON FRONT-END:
+                        Text("Edit")
+                            .foregroundColor(.black) // Edit Button Text Color
+                            .font(.system(size: 16, weight: .medium)) // Edit Button Font & Weight
+                            .padding(.horizontal, 20) // Padding for button
+                            .padding(.vertical, 8) // Padding
+                            .background(Color.white.opacity(0.7)) // Button Color
+                            .cornerRadius(20) // Make into Oval
                     }
                 }
-                .padding(.bottom, 20)
+                .padding(.horizontal, 20)
+                .padding(.top, geometry.safeAreaInsets.top)
+                .zIndex(2)
                 
-                // Username and Bio Section
-                VStack(spacing: 8) {
-                    //Username Information:
-                    Text(username)
-                        .font(.system(size: 25, weight: .semibold))
-                        .foregroundColor(.black)
-                    
-                    // Bio Information:
-                    Text(bio)
-                        .font(.system(size: 15))
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                }
-                .padding(.bottom, 25)
-                
-                // Follow Button Section:
-                Button(action: {
-                    toggleFollow()
-                }) {
-                    Text(isFollowing ? "Following" : "Follow")
-                        .font(.system(size: 15, weight: .medium)) // Button font
-                        .foregroundColor(.white) // Button text color
-                        .frame(width: 120, height: 40) // Button Size
-                        .background(isFollowing ? Color.gray : Color.blue) // Changes color depending on if the user is following or not
-                        .cornerRadius(20) // Make button an oval
-                        .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 4) // Shadow on follow button
-                }
-                .padding(.bottom, 30)
-                
-                // Posts Section:
                 VStack(spacing: 0) {
-                    Text("All Posts")
-                        .font(.system(size: 25, weight: .medium)) // Font size & weight
-                        .foregroundColor(.black) // Font color
-                        .padding(.bottom, 15) // Padding from everything
+                    Spacer().frame(height: 180) // for floating profile pic
                     
-                    // Divider Line:
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 1)
-                        .padding(.horizontal, 20)
-                }
-                .padding(.bottom, 20)
-                
-                // posts grid - simple for now
-                ScrollView {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 2) {
-                        ForEach(0..<posts.count, id: \.self) { index in
-                            // placeholder post images
+                    VStack(spacing: 16) {
+                        // Follower / Following:
+                        HStack(spacing: 220) {
+                            // FOLLOWER FRONT END:
+                            VStack(spacing: 4) {
+                                Text("\(followerCount)")
+                                    .font(.system(size: 20, weight: .bold)) // Count of Followers
+                                    .foregroundColor(.black)
+                                Text("Followers")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            VStack(spacing: 4) {
+                                Text("\(followingCount)")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.black)
+                                Text("Following")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        // Username and Bio
+                        VStack(spacing: 8) {
+                            //USERNAME FRONT-END:
+                            Text(username)
+                                .font(.system(size: 25, weight: .semibold))
+                                .foregroundColor(.black)
+                            
+                            //BIO FRONT-END
+                            Text(bio)
+                                .font(.system(size: 15))
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        
+                        // Follow Button
+                        Button(action: {
+                            toggleFollow()
+                        }) {
+                            Text(isFollowing ? "Following" : "Follow")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(width: 120, height: 40)
+                                .background(isFollowing ? Color.gray : Color.blue)
+                                .cornerRadius(20)
+                                .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 4)
+                        }
+                        
+                        // All Posts Section
+                        VStack(spacing: 8) {
+                            Text("All Posts")
+                                .font(.system(size: 25, weight: .medium))
+                                .foregroundColor(.black)
+                            
                             Rectangle()
-                                .fill(Color.blue.opacity(0.3))
-                                .aspectRatio(1, contentMode: .fit)
-                                .overlay(
-                                    // using system images as placeholders
-                                    Image(systemName: getPlaceholderIcon(for: index))
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 30))
-                                )
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 1)
+                                .padding(.horizontal, 20)
+                        }
+                        
+                        // Post Grid
+                        ScrollView {
+                            LazyVGrid(columns: [
+                                GridItem(.flexible()),
+                                GridItem(.flexible()),
+                                GridItem(.flexible())
+                            ], spacing: 2) {
+                                ForEach(0..<posts.count, id: \.self) { index in
+                                    Rectangle()
+                                        .fill(Color.blue.opacity(0.3))
+                                        .aspectRatio(1, contentMode: .fit)
+                                        .overlay(
+                                            Image(systemName: getPlaceholderIcon(for: index))
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 30))
+                                        )
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 10)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.top, 60)
+                    .padding(.bottom, 40)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(Color.white.opacity(0.88))
+                            .ignoresSafeArea(edges: .bottom)
+                    )
                 }
-            }
-            .padding(.horizontal, 20)
-            .background(
-                // rounded white background
-                RoundedRectangle(cornerRadius: 25)
+                .zIndex(1)
+                
+                // Floating Profile Picture
+                Circle()
                     .fill(Color.white)
-                    .ignoresSafeArea(.container, edges: .bottom)
-            )
+                    .frame(width: 100, height: 100)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 50))
+                    )
+                    .offset(y: 130)
+                    .zIndex(3)
+            }
         }
-        .background(
-            // blue gradient background like the mockup
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.blue]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        )
     }
     
-    // toggle follow status
+    // Toggle follow status
     func toggleFollow() {
         isFollowing.toggle()
-        // TODO: send follow request to backend
-        
         if isFollowing {
             followerCount += 1
             print("Started following user")
@@ -203,7 +195,7 @@ struct ProfileView: View {
         }
     }
     
-    // get placeholder icons for posts
+    // Placeholder icons
     func getPlaceholderIcon(for index: Int) -> String {
         let icons = ["figure.diving", "sunset", "paintpalette", "leaf"]
         return icons[index % icons.count]
