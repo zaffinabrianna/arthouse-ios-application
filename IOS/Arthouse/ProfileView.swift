@@ -80,63 +80,66 @@ struct ProfileView: View {
                 }
                 .padding(.bottom, 20)
                 
-                // followers/following stats
-                HStack(spacing: 40) {
+                // Followers and Following Section:
+                HStack(spacing: 250) { // Spacing in between the followers and following
                     VStack(spacing: 4) {
                         Text("\(followerCount)")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.black)
                         Text("Followers")
-                            .font(.system(size: 14))
+                            .font(.system(size: 15))
                             .foregroundColor(.gray)
                     }
                     
                     VStack(spacing: 4) {
                         Text("\(followingCount)")
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.black)
                         Text("Following")
-                            .font(.system(size: 14))
+                            .font(.system(size: 15))
                             .foregroundColor(.gray)
                     }
                 }
                 .padding(.bottom, 20)
                 
-                // username and bio
+                // Username and Bio Section
                 VStack(spacing: 8) {
+                    //Username Information:
                     Text(username)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 25, weight: .semibold))
                         .foregroundColor(.black)
                     
+                    // Bio Information:
                     Text(bio)
-                        .font(.system(size: 14))
+                        .font(.system(size: 15))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 }
                 .padding(.bottom, 25)
                 
-                // follow button
+                // Follow Button Section:
                 Button(action: {
                     toggleFollow()
                 }) {
                     Text(isFollowing ? "Following" : "Follow")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 120, height: 40)
-                        .background(isFollowing ? Color.gray : Color.blue)
-                        .cornerRadius(20)
+                        .font(.system(size: 15, weight: .medium)) // Button font
+                        .foregroundColor(.white) // Button text color
+                        .frame(width: 120, height: 40) // Button Size
+                        .background(isFollowing ? Color.gray : Color.blue) // Changes color depending on if the user is following or not
+                        .cornerRadius(20) // Make button an oval
+                        .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 4) // Shadow on follow button
                 }
                 .padding(.bottom, 30)
                 
-                // posts section header
+                // Posts Section:
                 VStack(spacing: 0) {
                     Text("All Posts")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.black)
-                        .padding(.bottom, 15)
+                        .font(.system(size: 25, weight: .medium)) // Font size & weight
+                        .foregroundColor(.black) // Font color
+                        .padding(.bottom, 15) // Padding from everything
                     
-                    // divider line
+                    // Divider Line:
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
                         .frame(height: 1)
@@ -210,4 +213,3 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
 }
-
