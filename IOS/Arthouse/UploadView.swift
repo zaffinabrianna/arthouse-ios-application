@@ -4,100 +4,124 @@
 //
 //  Created by Roberto Chavez on 7/21/25.
 //
-
 import SwiftUI
 
 struct UploadView: View {
-    @State private var caption = ""
-    @State private var selectedImage = false
-    @State private var isPosting = false
     @Environment(\.presentationMode) var presentationMode
-    
+    @State private var caption = ""
+    @State private var selectedMediaType = "Choose a Media Type"
+    @State private var isDropdownOpen = false
+    @State private var isPosting = false
+
+    let mediaTypes = ["Photo", "Video", "Audio Files"]
+
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                // Image placeholder
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(
-                        VStack(spacing: 20) {
-                            Image(systemName: "photo.on.rectangle")
-                                .font(.system(size: 50))
-                                .foregroundColor(.gray)
-                            
-                            Button(action: {
-                                // TODO: open image picker
-                                print("Select photo tapped")
-                                selectedImage = true
-                            }) {
-                                Text("Select Photo")
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                        }
-                    )
-                    .padding()
-                
-                // Caption input
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Caption")
-                        .font(.headline)
-                        .padding(.horizontal)
-                    
-                    TextEditor(text: $caption)
-                        .padding(8)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-                        .frame(height: 100)
-                        .padding(.horizontal)
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
                 }
+                .foregroundColor(.white)
                 
                 Spacer()
                 
-                // Post button
                 Button(action: {
                     postContent()
                 }) {
+                    Text("Post")
+                        .fontWeight(.semibold)
+                }
+                .disabled(isPosting)
+                .foregroundColor(.white)
+            }
+            .padding()
+            .background(Color(red: 173/255, green: 198/255, blue: 255/255)) // Light blue background
+
+            // Media Type Dropdown
+            VStack(spacing: 0) {
+                Button(action: {
+                    withAnimation {
+                        isDropdownOpen.toggle()
+                    }
+                }) {
                     HStack {
-                        if isPosting {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(0.8)
-                        }
-                        Text(isPosting ? "Posting..." : "Post")
-                            .fontWeight(.semibold)
+                        Text(selectedMediaType)
+                            .foregroundColor(.black)
+                        Spacer()
+                        Image(systemName: isDropdownOpen ? "chevron.up" : "chevron.down")
+                            .foregroundColor(.black)
                     }
-                    .frame(maxWidth: .infinity)
                     .padding()
-                    .background(selectedImage ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .disabled(!selectedImage || isPosting)
+                    .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
                 }
-                .padding()
-            }
-            .navigationTitle("New Post")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
+
+                if isDropdownOpen {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(mediaTypes, id: \.self) { type in
+                            Button(action: {
+                                selectedMediaType = type
+                                isDropdownOpen = false
+                            }) {
+                                Text(type)
+                                    .foregroundColor(.black)
+                            }
+                        }
                     }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
                 }
             }
+            .padding()
+
+            // Description Area
+            HStack(alignment: .top) {
+                Circle()
+                    .fill(Color.gray.opacity(0.4))
+                    .frame(width: 40, height: 40)
+                    .overlay(Image(systemName: "person.fill").foregroundColor(.white))
+
+                ZStack(alignment: .topLeading) {
+                    if caption.isEmpty {
+                        Text("Add a description . . .")
+                            .foregroundColor(.gray)
+                            .padding(8)
+                    }
+
+                    TextEditor(text: $caption)
+                        .padding(8)
+                        .frame(height: 100)
+                        .background(Color.white)
+                        .cornerRadius(8)
+                        .opacity(0.95)
+                }
+            }
+            .padding(.horizontal)
+
+            Spacer()
+
+            // Footer with char count and upload icon
+            HStack {
+                Text("\(300 - caption.count)")
+                    .foregroundColor(.white)
+                Spacer()
+                Image(systemName: "arrow.up.circle.fill")
+                    .foregroundColor(.white)
+                    .font(.system(size: 24))
+            }
+            .padding()
+            .background(Color(red: 173/255, green: 198/255, blue: 255/255)) // Light blue
+
         }
+        .edgesIgnoringSafeArea(.bottom)
+        .background(Color.white)
     }
-    
+
     func postContent() {
         isPosting = true
-        
-        // fake post upload
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            print("Posted with caption: \(caption)")
+            print("Posted media type: \(selectedMediaType), caption: \(caption)")
             isPosting = false
             presentationMode.wrappedValue.dismiss()
         }
