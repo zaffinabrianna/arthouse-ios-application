@@ -8,202 +8,190 @@
 import SwiftUI
 
 struct SignInView: View {
-    @State private var username: String = ""
-    @State private var password: String = ""
-    @State private var isLoading = false
-    @State private var errorMsg = ""
+    // MARK: – State
+    @EnvironmentObject var authViewModel: AuthViewModel   // injected view model
+    @State private var username     = ""
+    @State private var email        = ""
+    @State private var password     = ""
+    @State private var isLoading    = false
+    @State private var errorMsg     = ""
     @Binding var showSignUp: Bool
-    
+
+    // height of the bottom panel
+    private let bottomPanelHeight: CGFloat = 100
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Blue gradient background like the mockup
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.blue.opacity(0.7), Color.blue]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+        ZStack {
+            // 1) White background
+            Color.white
                 .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    // Status bar area
-                    HStack {
-                        Text("9:41")
-                            .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .medium))
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 6) {
-                            // Signal bars
-                            HStack(spacing: 2) {
-                                Rectangle()
-                                    .frame(width: 3, height: 4)
-                                    .foregroundColor(.white)
-                                Rectangle()
-                                    .frame(width: 3, height: 6)
-                                    .foregroundColor(.white)
-                                Rectangle()
-                                    .frame(width: 3, height: 8)
-                                    .foregroundColor(.white)
-                                Rectangle()
-                                    .frame(width: 3, height: 10)
-                                    .foregroundColor(.white)
-                            }
-                            
-                            // WiFi
-                            Image(systemName: "wifi")
-                                .foregroundColor(.white)
-                                .font(.system(size: 14))
-                            
-                            // Battery
-                            Image(systemName: "battery.100")
-                                .foregroundColor(.white)
-                                .font(.system(size: 16))
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                    
-                    Spacer()
-                    
-                    // White content card
-                    VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 12) {
-                            Text("ArtHouse")
-                                .font(.system(size: 34, weight: .bold))
-                                .foregroundColor(.black)
-                            
-                            Text("Enter your information to sign in")
-                                .font(.system(size: 16))
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.top, 32)
-                        
-                        // Form fields
-                        VStack(spacing: 20) {
-                            // Username field
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Your Username")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.black)
-                                
-                                TextField("your username", text: $username)
-                                    .padding(16)
-                                    .background(Color.gray.opacity(0.1))
-                                    .cornerRadius(8)
-                                    .font(.system(size: 16))
-                                    .autocapitalization(.none)
-                            }
-                            
-                            // Email field (like in mockup - shows "Your Email" but is for password)
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Your Email")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.black)
-                                
-                                Text("type your password")
-                                    .padding(16)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color.gray.opacity(0.1))
-                                    .cornerRadius(8)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gray)
-                            }
-                            
-                            // Password field
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Password")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.black)
-                                
-                                SecureField("enter password", text: $password)
-                                    .padding(16)
-                                    .background(Color.gray.opacity(0.1))
-                                    .cornerRadius(8)
-                                    .font(.system(size: 16))
-                            }
-                        }
-                        
-                        // Error message
-                        if !errorMsg.isEmpty {
-                            Text(errorMsg)
-                                .foregroundColor(.red)
-                                .font(.system(size: 14))
-                        }
-                        
-                        // Login button
-                        Button(action: {
-                            handleLogin()
-                        }) {
-                            HStack {
-                                if isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                        .scaleEffect(0.8)
-                                }
-                                Text(isLoading ? "Signing In..." : "Login")
-                                    .font(.system(size: 18, weight: .medium))
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(16)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                        }
-                        .disabled(isLoading)
-                        
-                        // Divider
-                        Text("or")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 14))
-                        
-                        // Sign up link
-                        Button(action: {
-                            showSignUp = true
-                        }) {
-                            Text("Sign Up Now")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.blue)
-                        }
-                        
-                        // Terms text
-                        Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
-                            .font(.system(size: 12))
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.bottom, 32)
-                    }
-                    .padding(.horizontal, 24)
-                    .background(Color.white)
-                    .cornerRadius(24)
-                    .padding(.horizontal, 16)
-                    
-                    Spacer()
-                }
+
+            // 2) Bottom curved panel behind everything
+            VStack {
+                Spacer()
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .fill(Color(red: 0.52, green: 0.67, blue: 0.96))
+                    .frame(height: bottomPanelHeight)
+                    .ignoresSafeArea(edges: .bottom)
             }
+            .zIndex(0)
+
+            // 3) Main content
+            VStack(spacing: 0) {
+                // Title & subtitle
+                VStack(spacing: 8) {
+                    Text("ArtHouse")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.black)
+                    Text("Enter your information to sign in")
+                        .font(.system(size: 16))
+                        .foregroundColor(.black)
+                }
+                .padding(.top, 60)
+
+                // Form fields
+                VStack(spacing: 20) {
+                    field(title: "Your Username",
+                          placeholder: "your username",
+                          text: $username)
+
+                    field(title: "Your Email",
+                          placeholder: "you@example.com",
+                          text: $email,
+                          keyboard: .emailAddress)
+
+                    field(title: "Password",
+                          placeholder: "enter password",
+                          text: $password,
+                          isSecure: true)
+                }
+                .padding(.top, 32)
+                .padding(.horizontal, 24)
+
+                // Error message
+                if !errorMsg.isEmpty {
+                    Text(errorMsg)
+                        .font(.system(size: 14))
+                        .foregroundColor(.red)
+                        .padding(.top, 4)
+                }
+
+                // Login button
+                Button(action: handleLogin) {
+                    HStack {
+                        if isLoading {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Text("Login")
+                                .font(.system(size: 18, weight: .medium))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(Color(red: 0.52, green: 0.67, blue: 0.96))
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .padding(.top, 24)
+                .padding(.horizontal, 24)
+                .disabled(isLoading)
+
+                // Custom “or” divider
+                HStack(alignment: .center) {
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(Color.gray.opacity(0.3))
+                    Text(" or ")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color.gray.opacity(0.7))
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(Color.gray.opacity(0.3))
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+
+                // Sign up button
+                Button(action: { showSignUp = true }) {
+                    Text("Sign Up Now")
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(Color.gray.opacity(0.4))
+                        .foregroundColor(.black)
+                        .cornerRadius(8)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+
+                // Terms text
+                Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color.gray.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 16)
+
+                Spacer()
+            }
+            .padding(.bottom, bottomPanelHeight)
+            .zIndex(1)
         }
     }
-    
-    // handle login logic
-    func handleLogin() {
-        // basic validation
-        if username.isEmpty || password.isEmpty {
+
+    // MARK: – Field builder
+    @ViewBuilder
+    private func field(title: String,
+                       placeholder: String,
+                       text: Binding<String>,
+                       isSecure: Bool = false,
+                       keyboard: UIKeyboardType = .default) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.black)
+
+            Group {
+                if isSecure {
+                    SecureField("", text: text, prompt:
+                        Text(placeholder)
+                            .foregroundColor(Color.gray.opacity(0.6))
+                    )
+                } else {
+                    TextField("", text: text, prompt:
+                        Text(placeholder)
+                            .foregroundColor(Color.gray.opacity(0.6))
+                    )
+                    .keyboardType(keyboard)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                }
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .background(Color.white)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+        }
+    }
+
+    // MARK: – Actions
+    private func handleLogin() {
+        guard !username.isEmpty,
+              !email.isEmpty,
+              !password.isEmpty else {
             errorMsg = "Please fill in all fields"
             return
         }
-        
+
         isLoading = true
         errorMsg = ""
-        
-        // simulate network call
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            // hardcoded for testing - TODO: connect to real API
-            if username.lowercased() == "demo" && password == "demo" {
-                print("Login successful!")
-                // TODO: navigate to main app
-            } else {
+            authViewModel.login(username: username, password: password)
+            if !authViewModel.isLoggedIn {
                 errorMsg = "Invalid credentials"
             }
             isLoading = false
@@ -211,6 +199,9 @@ struct SignInView: View {
     }
 }
 
-#Preview {
-    SignInView(showSignUp: .constant(false))
+struct SignInView_Previews: PreviewProvider {
+    static var previews: some View {
+        SignInView(showSignUp: .constant(false))
+            .environmentObject(AuthViewModel())
+    }
 }
