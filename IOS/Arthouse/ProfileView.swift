@@ -4,8 +4,6 @@
 //
 // Front-End: Brianna Zaffina
 // Back-End: Roberto Chavez & Jacob Nguyen
-
-
 import SwiftUI
 
 struct ProfileView: View {
@@ -66,7 +64,7 @@ struct ProfileView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, geometry.safeAreaInsets.top)
+                .padding(.top, 20)
                 .zIndex(2)
                 
                 VStack(spacing: 0) {
@@ -74,7 +72,7 @@ struct ProfileView: View {
                     
                     VStack(spacing: 16) {
                         // Follower / Following:
-                        HStack(spacing: 220) {
+                        HStack(spacing: 200) {
                             // FOLLOWER FRONT END:
                             VStack(spacing: 4) {
                                 Text("\(followerCount)")
