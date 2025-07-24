@@ -103,3 +103,7 @@ struct UploadView: View {
         }
     }
 }
+
+#Preview {
+    UploadView()
+}
