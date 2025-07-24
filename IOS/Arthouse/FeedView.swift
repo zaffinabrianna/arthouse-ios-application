@@ -2,9 +2,16 @@
 //  FeedView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/21/25.
+// Front End: Brianna Zaffina
+//  Back-End: Roberto and Jacob
 //
+
 import SwiftUI
+
+extension Color {
+    static let navy = Color(red: 0, green: 0, blue: 0.9)
+    static let lightBlue = Color(red: 234/255, green: 241/255, blue: 1.0)
+}
 
 struct FeedView: View {
     @State private var posts = [
@@ -15,8 +22,8 @@ struct FeedView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(.systemGray6).edgesIgnoringSafeArea(.all)
-
+                Color(.white).edgesIgnoringSafeArea(.all)
+                
                 ScrollView {
                     VStack(spacing: 20) {
                         ForEach(posts) { post in
@@ -26,48 +33,83 @@ struct FeedView: View {
                     }
                     .padding(.top, 8)
                 }
-                .navigationTitle("Explore")
-                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text("Explore")
+                            .font(.system(size: 23, weight: .semibold)) 
+                            .foregroundColor(.black)
+                    }
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: {
-                            print("Back tapped")
+                            print("Back button tapped")
                         }) {
                             Image(systemName: "chevron.left")
                                 .foregroundColor(.black)
-                                .font(.system(size: 18, weight: .medium))
-                                .padding(10)
-                                .background(Color.white)
+                                .font(.system(size: 20))
+                                .padding(12)
+                                .background(Color.blue.opacity(0.1))
                                 .clipShape(Circle())
                         }
                     }
                 }
-
+                
                 // Floating button and tab bar placeholder
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
-                        HStack(spacing: 50) {
-                            Image(systemName: "house")
-                            Image(systemName: "magnifyingglass")
-                            ZStack {
-                                Circle()
-                                    .fill(LinearGradient(colors: [.pink, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .frame(width: 60, height: 60)
-                                    .shadow(radius: 5)
-
-                                Image(systemName: "plus")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 24, weight: .bold))
+                        ZStack{
+                            RoundedRectangle(cornerRadius: 30)
+                                .fill(Color.blue.opacity(0.9))
+                                .frame(height: 90)
+                                .padding(.horizontal)
+                                .shadow(radius: 4)
+                            
+                            HStack(spacing: 50) {
+                                Button(action: {
+                                    print("Home Feed Button Tapped")
+                                }){
+                                    Image(systemName: "house")
+                                }
+                                
+                                Button(action: { 
+                                    print("Explore Feed Button Tapped")
+                                }) {
+                                    Image(systemName: "magnifyingglass")
+                                }
+                                VStack {
+                                    Button(action: {
+                                        print("Post Button Tapped")
+                                    }){
+                                        ZStack{
+                                            Circle()
+                                                .fill(Color.blue.opacity(0.1))
+                                                .frame(width: 60, height: 60)
+                                                .shadow(radius: 5)
+                                            Image(systemName: "plus")
+                                                .foregroundColor(.navy)
+                                                .font(.system(size: 27, weight: .bold))
+                                        }
+                                    }
+                                }
+                                .offset(y: -32)
+                                Button(action: { 
+                                    print("Notification Button Tapped")
+                                }) {
+                                    Image(systemName: "bell")
+                                }
+                                
+                                Button(action: { 
+                                    print("Profile Button Tapped")
+                                }) {
+                                    Image(systemName: "person")
+                                }
                             }
-                            Image(systemName: "bell")
-                            Image(systemName: "person")
+                            .font(.system(size: 22))
+                            .foregroundColor(.black)
+                            .padding(.horizontal)
+                            Spacer()
                         }
-                        .font(.system(size: 22))
-                        .foregroundColor(.black)
-                        .padding(.horizontal)
-                        Spacer()
                     }
                     .padding(.bottom, 10)
                 }
@@ -95,14 +137,14 @@ struct PostCard: View {
                 Image(systemName: post.userImage)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 40, height: 40)
                     .foregroundColor(.gray)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Name")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 20, weight: .bold))
                     Text("@\(post.username)")
-                        .font(.system(size: 12))
+                        .font(.system(size: 15))
                         .foregroundColor(.gray)
                 }
                 
@@ -113,7 +155,7 @@ struct PostCard: View {
                 Image(post.postImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(height: 220)
+                    .frame(height: 260)
                     .clipped()
                     .cornerRadius(20)
                 
@@ -122,18 +164,23 @@ struct PostCard: View {
                         .foregroundColor(.white)
                     Text("\(post.likes)")
                         .foregroundColor(.white)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                 }
                 .padding(8)
-                .background(Color.black.opacity(0.5))
+                .background(Color.blue.opacity(0.5))
                 .cornerRadius(12)
                 .padding(10)
             }
         }
         .padding()
-        .background(Color.white)
+        .background(Color.lightBlue)
         .cornerRadius(30)
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
         .padding(.horizontal, 10)
     }
+}
+
+// MARK: - Preview
+#Preview {
+    FeedView()
 }
