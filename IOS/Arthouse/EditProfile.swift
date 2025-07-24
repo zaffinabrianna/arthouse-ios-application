@@ -50,7 +50,7 @@ struct EditProfile: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, geometry.safeAreaInsets.top + 10)
+                .padding(.top, 10)
                 .zIndex(2)
                 
                 VStack(spacing: 0) {
@@ -78,19 +78,12 @@ struct EditProfile: View {
                             }
                         }
                         
-                        VStack(spacing: 8) {
-                            //USERNAME FRONT-END:
-                            Text(username)
-                                .font(.system(size: 25, weight: .semibold))
-                                .foregroundColor(.black)
-                                .padding(.bottom, 100)
-                        }
-                        
                         // Editable Username Field
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Your Username")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.black)
+                                .padding(.top, 10)
                             
                             TextField("Enter username", text: $username)
                                 .padding()
@@ -104,7 +97,7 @@ struct EditProfile: View {
                             Text("Your Bio")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.black)
-                                .padding(.top, 50)
+                                .padding(.top, 10)
                             
                             TextEditor(text: $bio)
                                 .frame(height: 100)
@@ -113,7 +106,7 @@ struct EditProfile: View {
                                 .cornerRadius(10)
                                 .shadow(radius: 2)
                             
-                                .padding(.bottom, 70)
+                                .padding(.bottom, 25)
                         }
                         
                         // Sign Out Button
