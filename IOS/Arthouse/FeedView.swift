@@ -4,137 +4,136 @@
 //
 //  Created by Roberto Chavez on 7/21/25.
 //
-
 import SwiftUI
 
 struct FeedView: View {
     @State private var posts = [
-        Post(id: 1, username: "artlover22", userImage: "person.circle.fill", postImage: "sunset", likes: 122, caption: "Beautiful sunset today"),
-        Post(id: 2, username: "creative_mind", userImage: "person.circle.fill", postImage: "mountain", likes: 89, caption: "Mountain vibes"),
-        Post(id: 3, username: "photo_ninja", userImage: "person.circle.fill", postImage: "ocean", likes: 245, caption: "Ocean blues"),
-        Post(id: 4, username: "art_daily", userImage: "person.circle.fill", postImage: "forest", likes: 167, caption: "Into the woods")
+        Post(id: 1, username: "artlover22", userImage: "person.circle.fill", postImage: "sunset_photo", likes: 122),
+        Post(id: 2, username: "creative_mind", userImage: "person.circle.fill", postImage: "art_photo", likes: 88)
     ]
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Posts
-                    ForEach(posts) { post in
-                        PostCard(post: post)
+            ZStack {
+                Color(.systemGray6).edgesIgnoringSafeArea(.all)
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        ForEach(posts) { post in
+                            PostCard(post: post)
+                        }
+                        Spacer(minLength: 80) // spacing for tab bar
+                    }
+                    .padding(.top, 8)
+                }
+                .navigationTitle("Explore")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: {
+                            print("Back tapped")
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .foregroundColor(.black)
+                                .font(.system(size: 18, weight: .medium))
+                                .padding(10)
+                                .background(Color.white)
+                                .clipShape(Circle())
+                        }
                     }
                 }
-            }
-            .navigationTitle("Explore")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        // TODO: open camera
-                        print("Camera tapped")
-                    }) {
-                        Image(systemName: "camera")
-                            .foregroundColor(.black)
+
+                // Floating button and tab bar placeholder
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 50) {
+                            Image(systemName: "house")
+                            Image(systemName: "magnifyingglass")
+                            ZStack {
+                                Circle()
+                                    .fill(LinearGradient(colors: [.pink, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .frame(width: 60, height: 60)
+                                    .shadow(radius: 5)
+
+                                Image(systemName: "plus")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 24, weight: .bold))
+                            }
+                            Image(systemName: "bell")
+                            Image(systemName: "person")
+                        }
+                        .font(.system(size: 22))
+                        .foregroundColor(.black)
+                        .padding(.horizontal)
+                        Spacer()
                     }
+                    .padding(.bottom, 10)
                 }
             }
         }
     }
 }
 
-// Simple Post model
+// MARK: - Post Model
 struct Post: Identifiable {
     let id: Int
     let username: String
     let userImage: String
     let postImage: String
     let likes: Int
-    let caption: String
 }
 
-// Post card component
+// MARK: - Post Card
 struct PostCard: View {
     let post: Post
-    @State private var isLiked = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // User header
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
                 Image(systemName: post.userImage)
-                    .font(.system(size: 32))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
                     .foregroundColor(.gray)
                 
-                Text(post.username)
-                    .font(.system(size: 14, weight: .medium))
-                
-                Spacer()
-                
-                Button(action: {
-                    print("More options for \(post.username)")
-                }) {
-                    Image(systemName: "ellipsis")
-                        .foregroundColor(.black)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
-            
-            // Post image - using placeholder
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .aspectRatio(1, contentMode: .fit)
-                .overlay(
-                    // placeholder image
-                    Image(systemName: "photo")
-                        .font(.system(size: 50))
-                        .foregroundColor(.gray.opacity(0.5))
-                )
-            
-            // Interaction buttons
-            HStack(spacing: 16) {
-                Button(action: {
-                    isLiked.toggle()
-                    print("Liked post by \(post.username)")
-                }) {
-                    Image(systemName: isLiked ? "heart.fill" : "heart")
-                        .font(.system(size: 24))
-                        .foregroundColor(isLiked ? .red : .black)
-                }
-                
-                Button(action: {
-                    print("Comment on post")
-                }) {
-                    Image(systemName: "bubble.right")
-                        .font(.system(size: 24))
-                        .foregroundColor(.black)
-                }
-                
-                Button(action: {
-                    print("Share post")
-                }) {
-                    Image(systemName: "paperplane")
-                        .font(.system(size: 24))
-                        .foregroundColor(.black)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Name")
+                        .font(.system(size: 14, weight: .bold))
+                    Text("@\(post.username)")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
                 }
                 
                 Spacer()
             }
-            .padding(.horizontal)
-            .padding(.top, 10)
             
-            // Likes count
-            Text("\(post.likes + (isLiked ? 1 : 0)) likes")
-                .font(.system(size: 14, weight: .semibold))
-                .padding(.horizontal)
-                .padding(.top, 8)
-            
-            // Caption
-            Text(post.caption)
-                .font(.system(size: 14))
-                .padding(.horizontal)
-                .padding(.top, 4)
-                .padding(.bottom, 20)
+            ZStack(alignment: .bottomLeading) {
+                Image(post.postImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 220)
+                    .clipped()
+                    .cornerRadius(20)
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "heart.fill")
+                        .foregroundColor(.white)
+                    Text("\(post.likes)")
+                        .foregroundColor(.white)
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .padding(8)
+                .background(Color.black.opacity(0.5))
+                .cornerRadius(12)
+                .padding(10)
+            }
         }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(30)
+        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+        .padding(.horizontal, 10)
     }
 }
