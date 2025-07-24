@@ -64,7 +64,7 @@ struct ProfileView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .padding(.top, 10)
                 .zIndex(2)
                 
                 VStack(spacing: 0) {
