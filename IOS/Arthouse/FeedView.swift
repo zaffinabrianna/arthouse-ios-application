@@ -59,23 +59,26 @@ struct FeedView: View {
                     HStack {
                         Spacer()
                         ZStack{
-                            RoundedRectangle(cornerRadius: 30)
+                            CustomTabShape()
                                 .fill(Color.blue.opacity(0.9))
                                 .frame(height: 90)
                                 .padding(.horizontal, -10)
                                 .shadow(radius: 4)
                             
+                            //Icon Section
                             HStack(spacing: 50) {
                                 Button(action: {
                                     print("Home Feed Button Tapped")
                                 }){
-                                    Image(systemName: "house")
+                                    Image(systemName: "house.fill")
+                                        .foregroundColor(.white)
                                 }
                                 
                                 Button(action: { 
                                     print("Explore Feed Button Tapped")
                                 }) {
                                     Image(systemName: "magnifyingglass")
+                                        .foregroundColor(.white)
                                 }
                                 VStack {
                                     Button(action: {
@@ -96,13 +99,15 @@ struct FeedView: View {
                                 Button(action: { 
                                     print("Notification Button Tapped")
                                 }) {
-                                    Image(systemName: "bell")
+                                    Image(systemName: "bell.fill")
+                                        .foregroundColor(.white)
                                 }
                                 
                                 Button(action: { 
                                     print("Profile Button Tapped")
                                 }) {
-                                    Image(systemName: "person")
+                                    Image(systemName: "person.fill")
+                                        .foregroundColor(.white)
                                 }
                             }
                             .font(.system(size: 22))
@@ -110,6 +115,7 @@ struct FeedView: View {
                             .padding(.horizontal)
                             Spacer()
                         }
+                        .ignoresSafeArea(.keyboard, edges: .bottom)
                     }
                     .padding(.bottom, 10)
                 }
@@ -177,6 +183,35 @@ struct PostCard: View {
         .cornerRadius(30)
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
         .padding(.horizontal, 10)
+    }
+}
+
+struct CustomTabShape: Shape{
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        let center = rect.midX
+        let radius: CGFloat = 38
+        let cutoutWidth: CGFloat = radius * 2
+        let cutoutHeight: CGFloat = radius
+        
+        path.move(to: CGPoint(x: 0, y:0))
+        path.addLine(to: CGPoint(x: center - cutoutWidth / 2, y: 0))
+        
+        path.addArc(
+            center: CGPoint(x: center, y:0),
+            radius: radius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+        
+        path.addLine(to: CGPoint(x: rect.width, y:0))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height))
+        path.closeSubpath()
+        
+        return path
     }
 }
 
