@@ -12,9 +12,9 @@ struct UploadView: View {
     @State private var selectedMediaType = "Choose a Media Type"
     @State private var isDropdownOpen = false
     @State private var isPosting = false
-
+    
     let mediaTypes = ["Photo", "Video", "Audio Files"]
-
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -37,7 +37,7 @@ struct UploadView: View {
             }
             .padding()
             .background(Color(red: 173/255, green: 198/255, blue: 255/255)) // Light blue background
-
+            
             // Media Type Dropdown
             VStack(spacing: 0) {
                 Button(action: {
@@ -55,7 +55,7 @@ struct UploadView: View {
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
                 }
-
+                
                 if isDropdownOpen {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(mediaTypes, id: \.self) { type in
@@ -73,21 +73,21 @@ struct UploadView: View {
                 }
             }
             .padding()
-
+            
             // Description Area
             HStack(alignment: .top) {
                 Circle()
                     .fill(Color.gray.opacity(0.4))
                     .frame(width: 40, height: 40)
                     .overlay(Image(systemName: "person.fill").foregroundColor(.white))
-
+                
                 ZStack(alignment: .topLeading) {
                     if caption.isEmpty {
                         Text("Add a description . . .")
                             .foregroundColor(.gray)
                             .padding(8)
                     }
-
+                    
                     TextEditor(text: $caption)
                         .padding(8)
                         .frame(height: 100)
@@ -97,9 +97,9 @@ struct UploadView: View {
                 }
             }
             .padding(.horizontal)
-
+            
             Spacer()
-
+            
             // Footer with char count and upload icon
             HStack {
                 Text("\(300 - caption.count)")
@@ -111,15 +111,15 @@ struct UploadView: View {
             }
             .padding()
             .background(Color(red: 173/255, green: 198/255, blue: 255/255)) // Light blue
-
+            
         }
         .edgesIgnoringSafeArea(.bottom)
         .background(Color.white)
     }
-
+    
     func postContent() {
         isPosting = true
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             print("Posted media type: \(selectedMediaType), caption: \(caption)")
             isPosting = false
