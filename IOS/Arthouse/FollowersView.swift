@@ -54,19 +54,19 @@ struct FollowersView: View {
                                 HStack(spacing: 12) {
                                     Circle()
                                         .fill(Color.white)
-                                        .frame(width: 40, height: 40)
+                                        .frame(width: 50, height: 50)
                                         .overlay(
                                             Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                         )
                                     
                                     Text(followers[index])
                                         .fontWeight(.semibold)
-                                        .font(.system(size: 16))
+                                        .font(.system(size: 18))
                                     
                                     Spacer()
                                 }
-                                .padding(.vertical, 12)
-                                .padding(.horizontal)
+                                .padding(.vertical, 20)
+                                .padding(.horizontal, 40)
                             }
                         }
                         .padding(.top, 10)
