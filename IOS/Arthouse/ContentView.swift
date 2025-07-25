@@ -2,8 +2,9 @@
 //  ContentView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/9/25.
-//
+//  Front-End: Brianna Zaffina
+//  UI/Mock-Up Designs: Tanusri
+//  Back-End: Roberto Chavez & Jacob Nguyen
 
 import SwiftUI
 
@@ -165,76 +166,70 @@ struct ContentView: View {
                 .padding(.vertical, 6)
                 .background(Color.white)
                 
-                // Floating button and tab bar placeholder
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        ZStack{
-                            CustomTabShape()
-                                .fill(Color.blue.opacity(0.9))
-                                .frame(height: 90)
-                                .padding(.horizontal, -10)
-                                .shadow(radius: 4)
-                            
-                            //Icon Section
-                            HStack(spacing: 50) {
-                                Button(action: {
-                                    print("Home Feed Button Tapped")
-                                }){
-                                    Image(systemName: "house.fill")
-                                        .foregroundColor(.white)
-                                }
-                                
-                                Button(action: { 
-                                    print("Explore Feed Button Tapped")
-                                }) {
-                                    Image(systemName: "magnifyingglass")
-                                        .foregroundColor(.white)
-                                }
-                                
-                                Spacer().frame(width: 60)
-                                
-                                    .offset(y: -32)
-                                Button(action: { 
-                                    print("Notification Button Tapped")
-                                }) {
-                                    Image(systemName: "bell.fill")
-                                        .foregroundColor(.white)
-                                }
-                                
-                                Button(action: { 
-                                    print("Profile Button Tapped")
-                                }) {
-                                    Image(systemName: "person.fill")
-                                        .foregroundColor(.white)
-                                }
-                            }
-                            .font(.system(size: 22))
-                            .foregroundColor(.black)
-                            .padding(.horizontal)
-                            
-                            Button(action: {
-                                print("Post Button Tapped")
-                            }){
-                                ZStack{
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.1))
-                                        .frame(width: 60, height: 60)
-                                        .shadow(radius: 5)
-                                    Image(systemName: "plus")
-                                        .foregroundColor(.navy)
-                                        .font(.system(size: 27, weight: .bold))
-                                }
-                            }
-                            .offset(y: -10)
+                // MARK: - Custom tab bar
+                ZStack{
+                    CustomTabShape()
+                        .fill(Color.blue.opacity(0.8))
+                        .frame(height: 90)
+                        .padding(.horizontal, -10)
+                        .shadow(radius: 4)
+                    
+                    //Icon Section
+                    HStack(spacing: 50) {
+                        Button(action: {
+                            print("Home Feed Button Tapped")
+                        }){
+                            Image(systemName: "house.fill")
+                                .foregroundColor(.white)
                         }
-                        .ignoresSafeArea(.keyboard, edges: .bottom)
+                        
+                        Button(action: { 
+                            print("Explore Feed Button Tapped")
+                        }) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.white)
+                        }
+                        
+                        Spacer().frame(width: 60)
+                        
+                            .offset(y: -32)
+                        Button(action: { 
+                            print("Notification Button Tapped")
+                        }) {
+                            Image(systemName: "bell.fill")
+                                .foregroundColor(.white)
+                        }
+                        
+                        Button(action: { 
+                            print("Profile Button Tapped")
+                        }) {
+                            Image(systemName: "person.fill")
+                                .foregroundColor(.white)
+                        }
                     }
-                    .padding(.bottom, 10)
+                    .font(.system(size: 22))
+                    .foregroundColor(.black)
+                    .padding(.horizontal)
+                    
+                    Button(action: {
+                        print("Post Button Tapped")
+                    }){
+                        ZStack{
+                            Circle()
+                                .fill(Color.blue.opacity(0.1))
+                                .frame(width: 60, height: 60)
+                                .shadow(radius: 5)
+                            Image(systemName: "plus")
+                                .foregroundColor(.navy)
+                                .font(.system(size: 27, weight: .bold))
+                        }
+                    }
+                    .offset(y: -15)
                 }
             }
+            .ignoresSafeArea(edges: .bottom)
         }
+        .navigationBarHidden(true)
     }
 }
 
@@ -254,16 +249,21 @@ struct CustomTabShape: Shape {
         let radius: CGFloat = 38
         let cutoutDepth: CGFloat = 30
         let center = width / 2
+        let cutoutCornerRadius: CGFloat = 10
         
         let cutoutStartX = center - radius
-        let cutoutEndX = center - radius
+        let cutoutEndX = center + radius
         
         // Start from bottom-left
         path.move(to: CGPoint(x: 0, y: height))
         path.addLine(to: CGPoint(x: 0, y: 0))
         
         // Left straight section
-        path.addLine(to: CGPoint(x: cutoutStartX, y: 0))
+        path.addLine(to: CGPoint(x: cutoutStartX - cutoutCornerRadius, y: 0))
+    
+        path.addQuadCurve(
+            to: CGPoint(x: cutoutStartX, y: cutoutCornerRadius), control: CGPoint(x: cutoutStartX, y:0)
+        )
         
         // Circular cutout
         path.addArc(
@@ -274,6 +274,9 @@ struct CustomTabShape: Shape {
             clockwise: true
         )
         
+        path.addQuadCurve(to: CGPoint(x: cutoutEndX + cutoutCornerRadius, y:0), control: CGPoint(x: cutoutEndX, y:0))
+        
+        path.addLine(to: CGPoint(x: cutoutEndX, y:0))
         // Right straight section
         path.addLine(to: CGPoint(x: width, y: 0))
         path.addLine(to: CGPoint(x: width, y: height))
