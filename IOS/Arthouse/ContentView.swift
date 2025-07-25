@@ -217,29 +217,31 @@ struct Comment: Identifiable {
 struct CustomTabShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        
+
         let width = rect.width
         let height = rect.height
-        
-        let notchRadius: CGFloat = 38
-        let notchWidth: CGFloat = notchRadius * 2
-        let notchCenter = width / 2
+        let radius: CGFloat = 38
+        let center = width / 2
 
-        path.move(to: .zero)
+        // Start from bottom-left
+        path.move(to: CGPoint(x: 0, y: height))
+        path.addLine(to: CGPoint(x: 0, y: 0))
         
-        // Left side to start of notch
-        path.addLine(to: CGPoint(x: notchCenter - notchWidth / 2, y: 0))
+        // Left straight section
+        path.addLine(to: CGPoint(x: center - radius * 1.3, y: 0))
         
-        // Cutout arc (inverted)
-        path.addQuadCurve(
-            to: CGPoint(x: notchCenter + notchWidth / 2, y: 0),
-            control: CGPoint(x: notchCenter, y: -notchRadius)
+        // Circular cutout
+        path.addArc(
+            center: CGPoint(x: center, y: 0),
+            radius: radius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(0),
+            clockwise: true
         )
         
-        // Right side
+        // Right straight section
         path.addLine(to: CGPoint(x: width, y: 0))
         path.addLine(to: CGPoint(x: width, y: height))
-        path.addLine(to: CGPoint(x: 0, y: height))
         path.closeSubpath()
         
         return path
