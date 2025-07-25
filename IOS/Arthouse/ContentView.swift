@@ -165,45 +165,76 @@ struct ContentView: View {
                 .padding(.vertical, 6)
                 .background(Color.white)
                 
-                // MARK: - Custom tab bar
-                ZStack {
-                    CustomTabShape()
-                        .fill(Color(red: 0.25, green: 0.45, blue: 1.0))
-                        .frame(height: 90)
-                        .shadow(radius: 4)
-                        .overlay(
+                // Floating button and tab bar placeholder
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        ZStack{
+                            CustomTabShape()
+                                .fill(Color.blue.opacity(0.9))
+                                .frame(height: 90)
+                                .padding(.horizontal, -10)
+                                .shadow(radius: 4)
+                            
+                            //Icon Section
                             HStack(spacing: 50) {
-                                Image(systemName: "house.fill")
-                                Image(systemName: "magnifyingglass")
-                                Spacer()
-                                Image(systemName: "bell.fill")
-                                Image(systemName: "person.fill")
+                                Button(action: {
+                                    print("Home Feed Button Tapped")
+                                }){
+                                    Image(systemName: "house.fill")
+                                        .foregroundColor(.white)
+                                }
+                                
+                                Button(action: { 
+                                    print("Explore Feed Button Tapped")
+                                }) {
+                                    Image(systemName: "magnifyingglass")
+                                        .foregroundColor(.white)
+                                }
+                                
+                                Spacer().frame(width: 60)
+                                
+                                    .offset(y: -32)
+                                Button(action: { 
+                                    print("Notification Button Tapped")
+                                }) {
+                                    Image(systemName: "bell.fill")
+                                        .foregroundColor(.white)
+                                }
+                                
+                                Button(action: { 
+                                    print("Profile Button Tapped")
+                                }) {
+                                    Image(systemName: "person.fill")
+                                        .foregroundColor(.white)
+                                }
                             }
-                                .font(.system(size: 20))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 40)
-                        )
-                    
-                    // Center "+" button
-                    Button(action: {
-                        print("Post tapped")
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 60, height: 60)
-                                .shadow(radius: 5)
-                            Image(systemName: "plus")
-                                .foregroundColor(.blue)
-                                .font(.system(size: 26, weight: .bold))
+                            .font(.system(size: 22))
+                            .foregroundColor(.black)
+                            .padding(.horizontal)
+                            
+                            Button(action: {
+                                print("Post Button Tapped")
+                            }){
+                                ZStack{
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.1))
+                                        .frame(width: 60, height: 60)
+                                        .shadow(radius: 5)
+                                    Image(systemName: "plus")
+                                        .foregroundColor(.navy)
+                                        .font(.system(size: 27, weight: .bold))
+                                }
+                            }
+                            .offset(y: -10)
                         }
+                        .ignoresSafeArea(.keyboard, edges: .bottom)
                     }
-                    .offset(y: -30)
+                    .padding(.bottom, 10)
                 }
             }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
-        .navigationBarHidden(true)
     }
 }
 
@@ -217,22 +248,26 @@ struct Comment: Identifiable {
 struct CustomTabShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-
+        
         let width = rect.width
         let height = rect.height
         let radius: CGFloat = 38
+        let cutoutDepth: CGFloat = 30
         let center = width / 2
-
+        
+        let cutoutStartX = center - radius
+        let cutoutEndX = center - radius
+        
         // Start from bottom-left
         path.move(to: CGPoint(x: 0, y: height))
         path.addLine(to: CGPoint(x: 0, y: 0))
         
         // Left straight section
-        path.addLine(to: CGPoint(x: center - radius * 1.3, y: 0))
+        path.addLine(to: CGPoint(x: cutoutStartX, y: 0))
         
         // Circular cutout
         path.addArc(
-            center: CGPoint(x: center, y: 0),
+            center: CGPoint(x: center, y: cutoutDepth),
             radius: radius,
             startAngle: .degrees(180),
             endAngle: .degrees(0),
