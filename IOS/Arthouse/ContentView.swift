@@ -248,9 +248,9 @@ struct CustomTabShape: Shape {
         let height = rect.height
         let radius: CGFloat = 38
         let cutoutDepth: CGFloat = 30
-        let center = width / 2
         let cutoutCornerRadius: CGFloat = 10
         
+        let center = width / 2
         let cutoutStartX = center - radius
         let cutoutEndX = center + radius
         
@@ -276,7 +276,7 @@ struct CustomTabShape: Shape {
         
         path.addQuadCurve(to: CGPoint(x: cutoutEndX + cutoutCornerRadius, y:0), control: CGPoint(x: cutoutEndX, y:0))
         
-        path.addLine(to: CGPoint(x: cutoutEndX, y:0))
+        
         // Right straight section
         path.addLine(to: CGPoint(x: width, y: 0))
         path.addLine(to: CGPoint(x: width, y: height))
