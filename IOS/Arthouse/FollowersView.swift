@@ -45,7 +45,7 @@ struct FollowersView: View {
                 // Light Blue Section with Rounded Top Corners
                 ZStack {
                     Color(red: 0.9, green: 0.95, blue: 1.0)
-                        .clipShape(RoundedCorner(radius: 30, corners: [.topLeft, .topRight]))
+                        .clipShape(RoundedCorner(radius: 50, corners: [.topLeft, .topRight]))
                         .ignoresSafeArea(edges: .bottom)
                     
                     ScrollView {
