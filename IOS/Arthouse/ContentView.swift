@@ -214,29 +214,32 @@ struct Comment: Identifiable {
     let content: String
 }
 
-// MARK: - Custom Tab Shape
 struct CustomTabShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let center = rect.midX
-        let radius: CGFloat = 38
-        let cutoutWidth: CGFloat = radius * 2
-        let cutoutHeight: CGFloat = radius
         
-        path.move(to: CGPoint(x: 0, y: 0))
-        path.addLine(to: CGPoint(x: center - cutoutWidth / 2, y: 0))
+        let width = rect.width
+        let height = rect.height
         
-        path.addArc(
-            center: CGPoint(x: center, y: 0),
-            radius: radius,
-            startAngle: .degrees(180),
-            endAngle: .degrees(0),
-            clockwise: false
+        let notchRadius: CGFloat = 38
+        let notchWidth: CGFloat = notchRadius * 2
+        let notchCenter = width / 2
+
+        path.move(to: .zero)
+        
+        // Left side to start of notch
+        path.addLine(to: CGPoint(x: notchCenter - notchWidth / 2, y: 0))
+        
+        // Cutout arc (inverted)
+        path.addQuadCurve(
+            to: CGPoint(x: notchCenter + notchWidth / 2, y: 0),
+            control: CGPoint(x: notchCenter, y: -notchRadius)
         )
         
-        path.addLine(to: CGPoint(x: rect.width, y: 0))
-        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height))
+        // Right side
+        path.addLine(to: CGPoint(x: width, y: 0))
+        path.addLine(to: CGPoint(x: width, y: height))
+        path.addLine(to: CGPoint(x: 0, y: height))
         path.closeSubpath()
         
         return path
