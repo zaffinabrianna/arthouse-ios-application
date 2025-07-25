@@ -60,7 +60,7 @@ struct FeedView: View {
                         Spacer()
                         ZStack{
                             CustomTabShape()
-                                .fill(Color.blue.opacity(0.9))
+                                .fill(Color.blue.opacity(1))
                                 .frame(height: 90)
                                 .padding(.horizontal, -10)
                                 .shadow(radius: 4)
@@ -115,9 +115,10 @@ struct FeedView: View {
                                         .font(.system(size: 27, weight: .bold))
                                 }
                             }
-                            .offset(y: -10)
+                            .offset(y: -15)
                         }
                         .ignoresSafeArea(.keyboard, edges: .bottom)
+
                     }
                     .padding(.bottom, 10)
                 }
