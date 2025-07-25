@@ -80,21 +80,9 @@ struct FeedView: View {
                                     Image(systemName: "magnifyingglass")
                                         .foregroundColor(.white)
                                 }
-                                VStack {
-                                    Button(action: {
-                                        print("Post Button Tapped")
-                                    }){
-                                        ZStack{
-                                            Circle()
-                                                .fill(Color.blue.opacity(0.1))
-                                                .frame(width: 60, height: 60)
-                                                .shadow(radius: 5)
-                                            Image(systemName: "plus")
-                                                .foregroundColor(.navy)
-                                                .font(.system(size: 27, weight: .bold))
-                                        }
-                                    }
-                                }
+                                
+                                Spacer().frame(width: 60)
+                                
                                 .offset(y: -32)
                                 Button(action: { 
                                     print("Notification Button Tapped")
@@ -113,7 +101,21 @@ struct FeedView: View {
                             .font(.system(size: 22))
                             .foregroundColor(.black)
                             .padding(.horizontal)
-                            Spacer()
+                            
+                            Button(action: {
+                                print("Post Button Tapped")
+                            }){
+                                ZStack{
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.1))
+                                        .frame(width: 60, height: 60)
+                                        .shadow(radius: 5)
+                                    Image(systemName: "plus")
+                                        .foregroundColor(.navy)
+                                        .font(.system(size: 27, weight: .bold))
+                                }
+                            }
+                            .offset(y: -10)
                         }
                         .ignoresSafeArea(.keyboard, edges: .bottom)
                     }
@@ -183,35 +185,6 @@ struct PostCard: View {
         .cornerRadius(30)
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
         .padding(.horizontal, 10)
-    }
-}
-
-struct CustomTabShape: Shape{
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        
-        let center = rect.midX
-        let radius: CGFloat = 38
-        let cutoutWidth: CGFloat = radius * 2
-        let cutoutHeight: CGFloat = radius
-        
-        path.move(to: CGPoint(x: 0, y:0))
-        path.addLine(to: CGPoint(x: center - cutoutWidth / 2, y: 0))
-        
-        path.addArc(
-            center: CGPoint(x: center, y:0),
-            radius: radius,
-            startAngle: .degrees(180),
-            endAngle: .degrees(0),
-            clockwise: false
-        )
-        
-        path.addLine(to: CGPoint(x: rect.width, y:0))
-        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height))
-        path.closeSubpath()
-        
-        return path
     }
 }
 
