@@ -28,15 +28,14 @@ struct ContentView: View {
                 // MARK: - Top bar with back button
                 HStack {
                     Button(action: {
-                        print("Back tapped")
+                        print("Back button tapped")
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.black)
-                            .font(.system(size: 16, weight: .semibold))
-                            .padding(10)
-                            .background(Color.white)
+                            .font(.system(size: 20))
+                            .padding(12)
+                            .background(Color.blue.opacity(0.1))
                             .clipShape(Circle())
-                            .shadow(radius: 1)
                     }
                     Spacer()
                 }
@@ -169,7 +168,7 @@ struct ContentView: View {
                 // MARK: - Custom tab bar
                 ZStack{
                     CustomTabShape()
-                        .fill(Color.blue.opacity(0.8))
+                        .fill(Color.blue.opacity(1))
                         .frame(height: 90)
                         .padding(.horizontal, -10)
                         .shadow(radius: 4)
@@ -274,8 +273,8 @@ struct CustomTabShape: Shape {
             clockwise: true
         )
         
-        path.addQuadCurve(to: CGPoint(x: cutoutEndX + cutoutCornerRadius, y:0), control: CGPoint(x: cutoutEndX, y:0))
-        
+        path.addQuadCurve(to: CGPoint(x: cutoutEndX + cutoutCornerRadius, y:0), control: CGPoint(x: cutoutEndX, y:0)
+        )
         
         // Right straight section
         path.addLine(to: CGPoint(x: width, y: 0))
