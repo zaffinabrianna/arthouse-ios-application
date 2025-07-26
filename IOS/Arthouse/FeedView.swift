@@ -14,9 +14,23 @@ extension Color {
 }
 
 struct FeedView: View {
+    @Binding var selectedTab: Int
+    @Binding var showUpload: Bool
     @State private var posts = [
-        Post(id: 1, username: "artlover22", userImage: "person.circle.fill", postImage: "sunset_photo", likes: 122),
-        Post(id: 2, username: "creative_mind", userImage: "person.circle.fill", postImage: "art_photo", likes: 88)
+        BlogPost(
+            id: UUID(),
+            authorName: "Art Lover",
+            authorHandle: "@artlover22",
+            imageName: "sunset_photo",
+            likeCount: 122
+        ),
+        BlogPost(
+            id: UUID(),
+            authorName: "Creative Mind",
+            authorHandle: "@creative_mind",
+            imageName: "art_photo",
+            likeCount: 88
+        )
     ]
     
     var body: some View {
@@ -35,21 +49,9 @@ struct FeedView: View {
                 }
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        Text("Explore")
-                            .font(.system(size: 23, weight: .semibold)) 
+                        Text("Feed")
+                            .font(.system(size: 23, weight: .semibold))
                             .foregroundColor(.black)
-                    }
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: {
-                            print("Back button tapped")
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .foregroundColor(.black)
-                                .font(.system(size: 20))
-                                .padding(12)
-                                .background(Color.blue.opacity(0.1))
-                                .clipShape(Circle())
-                        }
                     }
                 }
                 
@@ -59,43 +61,48 @@ struct FeedView: View {
                     HStack {
                         Spacer()
                         ZStack{
-                            CustomTabShape()
+                            // Temporary placeholder for CustomTabShape
+                            Rectangle()
                                 .fill(Color.blue.opacity(1))
                                 .frame(height: 90)
+                                .cornerRadius(20)
                                 .padding(.horizontal, -10)
                                 .shadow(radius: 4)
                             
                             //Icon Section
                             HStack(spacing: 50) {
                                 Button(action: {
+                                    selectedTab = 0
                                     print("Home Feed Button Tapped")
                                 }){
                                     Image(systemName: "house.fill")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
                                 }
                                 
-                                Button(action: { 
+                                Button(action: {
+                                    selectedTab = 1
                                     print("Explore Feed Button Tapped")
                                 }) {
                                     Image(systemName: "magnifyingglass")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                 }
                                 
                                 Spacer().frame(width: 60)
                                 
-                                .offset(y: -32)
-                                Button(action: { 
+                                Button(action: {
+                                    selectedTab = 3
                                     print("Notification Button Tapped")
                                 }) {
                                     Image(systemName: "bell.fill")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(selectedTab == 3 ? .white : .white.opacity(0.6))
                                 }
                                 
-                                Button(action: { 
+                                Button(action: {
+                                    selectedTab = 4
                                     print("Profile Button Tapped")
                                 }) {
                                     Image(systemName: "person.fill")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(selectedTab == 4 ? .white : .white.opacity(0.6))
                                 }
                             }
                             .font(.system(size: 22))
@@ -103,6 +110,7 @@ struct FeedView: View {
                             .padding(.horizontal)
                             
                             Button(action: {
+                                showUpload = true
                                 print("Post Button Tapped")
                             }){
                                 ZStack{
@@ -127,32 +135,23 @@ struct FeedView: View {
     }
 }
 
-// MARK: - Post Model
-struct Post: Identifiable {
-    let id: Int
-    let username: String
-    let userImage: String
-    let postImage: String
-    let likes: Int
-}
-
 // MARK: - Post Card
 struct PostCard: View {
-    let post: Post
+    let post: BlogPost
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Image(systemName: post.userImage)
+                Image(systemName: "person.crop.circle.fill")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 40, height: 40)
                     .foregroundColor(.gray)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Name")
+                    Text(post.authorName)
                         .font(.system(size: 20, weight: .bold))
-                    Text("@\(post.username)")
+                    Text(post.authorHandle)
                         .font(.system(size: 15))
                         .foregroundColor(.gray)
                 }
@@ -161,17 +160,38 @@ struct PostCard: View {
             }
             
             ZStack(alignment: .bottomLeading) {
-                Image(post.postImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 260)
-                    .clipped()
-                    .cornerRadius(20)
+                // Handle missing image gracefully
+                Group {
+                    if let uiImage = UIImage(named: post.imageName) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 260)
+                            .clipped()
+                            .cornerRadius(20)
+                    } else {
+                        // Fallback placeholder
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 260)
+                            .cornerRadius(20)
+                            .overlay(
+                                VStack {
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.gray)
+                                    Text("Image: \(post.imageName)")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            )
+                    }
+                }
                 
                 HStack(spacing: 6) {
                     Image(systemName: "heart.fill")
                         .foregroundColor(.white)
-                    Text("\(post.likes)")
+                    Text("\(post.likeCount)")
                         .foregroundColor(.white)
                         .font(.system(size: 15, weight: .semibold))
                 }
@@ -191,5 +211,5 @@ struct PostCard: View {
 
 // MARK: - Preview
 #Preview {
-    FeedView()
+    FeedView(selectedTab: .constant(0), showUpload: .constant(false))
 }
