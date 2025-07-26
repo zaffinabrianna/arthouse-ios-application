@@ -11,7 +11,7 @@ import SwiftUI
 struct ArthouseApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppTabView()
         }
     }
 }
