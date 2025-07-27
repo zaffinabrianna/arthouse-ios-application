@@ -4,21 +4,25 @@
 //
 // Front-End: Brianna Zaffina
 // Back-End: Roberto Chavez & Jacob Nguyen
+
 import SwiftUI
 
 struct ProfileView: View {
     @State private var isFollowing = false
     @State private var followerCount = 100
     @State private var followingCount = 342
+    @State private var showingEditProfile = false
+    @State private var showingFollowers = false
+    @State private var showingFollowing = false
     
     let username = "@Username"
     let bio = "This is where the user writes their bio"
     
     let posts = [
-        "underwater_photo",
-        "sunset_photo",
-        "art_photo",
-        "nature_photo"
+        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "underwater_photo", likeCount: 45),
+        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "sunset_photo", likeCount: 78),
+        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "art_photo", likeCount: 123),
+        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "nature_photo", likeCount: 67)
     ]
     
     var body: some View {
@@ -50,8 +54,7 @@ struct ProfileView: View {
                     Spacer()
                     
                     Button(action: {
-                        //Edit Button:
-                        print("Edit Button Tapped")
+                        showingEditProfile = true
                     }) {
                         // EDIT BUTTON FRONT-END:
                         Text("Edit")
@@ -73,23 +76,32 @@ struct ProfileView: View {
                     VStack(spacing: 16) {
                         // Follower / Following:
                         HStack(spacing: 200) {
-                            // FOLLOWER FRONT END:
-                            VStack(spacing: 4) {
-                                Text("\(followerCount)")
-                                    .font(.system(size: 20, weight: .bold)) // Count of Followers
-                                    .foregroundColor(.black)
-                                Text("Followers")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.gray)
+                            // FOLLOWER FRONT END - Now tappable:
+                            Button(action: {
+                                showingFollowers = true
+                            }) {
+                                VStack(spacing: 4) {
+                                    Text("\(followerCount)")
+                                        .font(.system(size: 20, weight: .bold)) // Count of Followers
+                                        .foregroundColor(.black)
+                                    Text("Followers")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.gray)
+                                }
                             }
                             
-                            VStack(spacing: 4) {
-                                Text("\(followingCount)")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(.black)
-                                Text("Following")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.gray)
+                            // FOLLOWING FRONT END - Now tappable:
+                            Button(action: {
+                                showingFollowing = true
+                            }) {
+                                VStack(spacing: 4) {
+                                    Text("\(followingCount)")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(.black)
+                                    Text("Following")
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.gray)
+                                }
                             }
                         }
                         
@@ -133,7 +145,7 @@ struct ProfileView: View {
                                 .padding(.horizontal, 20)
                         }
                         
-                        // Post Grid
+                        // Post Grid - Now with NavigationLink
                         ScrollView {
                             LazyVGrid(columns: [
                                 GridItem(.flexible()),
@@ -141,14 +153,16 @@ struct ProfileView: View {
                                 GridItem(.flexible())
                             ], spacing: 2) {
                                 ForEach(0..<posts.count, id: \.self) { index in
-                                    Rectangle()
-                                        .fill(Color.blue.opacity(0.3))
-                                        .aspectRatio(1, contentMode: .fit)
-                                        .overlay(
-                                            Image(systemName: getPlaceholderIcon(for: index))
-                                                .foregroundColor(.white)
-                                                .font(.system(size: 30))
-                                        )
+                                    NavigationLink(destination: PostDetailView(post: posts[index])) {
+                                        Rectangle()
+                                            .fill(Color.blue.opacity(0.3))
+                                            .aspectRatio(1, contentMode: .fit)
+                                            .overlay(
+                                                Image(systemName: getPlaceholderIcon(for: index))
+                                                    .foregroundColor(.white)
+                                                    .font(.system(size: 30))
+                                            )
+                                    }
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -156,7 +170,7 @@ struct ProfileView: View {
                         }
                     }
                     .padding(.top, 60)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 140) // Extra space for tab bar
                     .frame(maxWidth: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 30)
@@ -178,6 +192,15 @@ struct ProfileView: View {
                     .offset(y: 130)
                     .zIndex(3)
             }
+        }
+        .sheet(isPresented: $showingEditProfile) {
+            EditProfile()
+        }
+        .sheet(isPresented: $showingFollowers) {
+            FollowersView()
+        }
+        .sheet(isPresented: $showingFollowing) {
+            FollowingView()
         }
     }
     
@@ -201,5 +224,7 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    NavigationView {
+        ProfileView()
+    }
 }

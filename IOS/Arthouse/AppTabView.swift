@@ -78,78 +78,106 @@ struct AppTabView: View {
                 .hideTabBar() // Use our custom extension
                 
                 // Custom tab bar overlay - appears on all views
-                VStack {
+                VStack(spacing: 0) {
                     Spacer()
-                    HStack {
-                        Spacer()
-                        ZStack{
-                            // Custom tab shape
-                            Rectangle()
-                                .fill(Color.blue.opacity(1))
-                                .frame(height: 90)
-                                .cornerRadius(20)
-                                .padding(.horizontal, -10)
-                                .shadow(radius: 4)
-                            
-                            //Icon Section
-                            HStack(spacing: 50) {
+                    ZStack {
+                        // Custom tab shape with cutout
+                        CustomTabShape()
+                            .fill(Color(red: 76/255, green: 139/255, blue: 245/255)) // Match the lighter blue
+                            .frame(height: 120) // Increased height to reach bottom
+                            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: -5)
+                        
+                        // Tab bar icons
+                        HStack {
+                            // Left side icons
+                            HStack(spacing: 40) {
                                 Button(action: {
                                     selectedTab = 0
                                     print("Home Feed Button Tapped")
                                 }){
-                                    Image(systemName: "house.fill")
-                                        .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "house.fill")
+                                            .font(.system(size: 22))
+                                        Text("Home")
+                                            .font(.system(size: 10))
+                                    }
+                                    .foregroundColor(selectedTab == 0 ? .white : .white.opacity(0.6))
                                 }
                                 
                                 Button(action: {
                                     selectedTab = 1
                                     print("Explore Feed Button Tapped")
                                 }) {
-                                    Image(systemName: "magnifyingglass")
-                                        .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "magnifyingglass")
+                                            .font(.system(size: 22))
+                                        Text("Explore")
+                                            .font(.system(size: 10))
+                                    }
+                                    .foregroundColor(selectedTab == 1 ? .white : .white.opacity(0.6))
                                 }
-                                
-                                Spacer().frame(width: 60)
-                                
+                            }
+                            
+                            // Center spacer for floating button
+                            Spacer()
+                                .frame(width: 80)
+                            
+                            // Right side icons
+                            HStack(spacing: 40) {
                                 Button(action: {
                                     selectedTab = 3
                                     print("Notification Button Tapped")
                                 }) {
-                                    Image(systemName: "bell.fill")
-                                        .foregroundColor(selectedTab == 3 ? .white : .white.opacity(0.6))
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "bell.fill")
+                                            .font(.system(size: 22))
+                                        Text("Notifications")
+                                            .font(.system(size: 10))
+                                    }
+                                    .foregroundColor(selectedTab == 3 ? .white : .white.opacity(0.6))
                                 }
                                 
                                 Button(action: {
                                     selectedTab = 4
                                     print("Profile Button Tapped")
                                 }) {
-                                    Image(systemName: "person.fill")
-                                        .foregroundColor(selectedTab == 4 ? .white : .white.opacity(0.6))
+                                    VStack(spacing: 4) {
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 22))
+                                        Text("Profile")
+                                            .font(.system(size: 10))
+                                    }
+                                    .foregroundColor(selectedTab == 4 ? .white : .white.opacity(0.6))
                                 }
                             }
-                            .font(.system(size: 22))
-                            .padding(.horizontal)
-                            
-                            Button(action: {
-                                showUpload = true
-                                print("Post Button Tapped")
-                            }){
-                                ZStack{
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.1))
-                                        .frame(width: 60, height: 60)
-                                        .shadow(radius: 5)
-                                    Image(systemName: "plus")
-                                        .foregroundColor(Color(red: 0, green: 0, blue: 0.9))
-                                        .font(.system(size: 27, weight: .bold))
-                                }
-                            }
-                            .offset(y: -15)
                         }
-                        .ignoresSafeArea(.keyboard, edges: .bottom)
+                        .padding(.horizontal, 30)
+                        .padding(.bottom, 20) // Push icons up from bottom
+                        
+                        // Floating upload button in the cutout
+                        Button(action: {
+                            showUpload = true
+                            print("Post Button Tapped")
+                        }){
+                            ZStack{
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 65, height: 65)
+                                    .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+                                
+                                Circle()
+                                    .fill(Color(red: 76/255, green: 139/255, blue: 245/255)) // Match the lighter blue
+                                    .frame(width: 55, height: 55)
+                                
+                                Image(systemName: "plus")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 28, weight: .bold))
+                            }
+                        }
+                        .offset(y: -45) // Adjusted for new height
                     }
-                    .padding(.bottom, 10)
                 }
+                .edgesIgnoringSafeArea(.bottom)
             }
             .environmentObject(authVM)
             .sheet(isPresented: $showUpload) {

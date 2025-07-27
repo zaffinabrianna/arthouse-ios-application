@@ -7,128 +7,170 @@
 
 import SwiftUI
 
-// MARK: – Model
-struct ExplorePost: Identifiable {
-    let id: Int
-    let userName: String
-    let userHandle: String
-    let imageName: String
-    let likeCount: Int
-}
-
-// MARK: – ExploreView
 struct ExploreView: View {
-    // dummy data; swap in your real recommendations later
-    let posts: [ExplorePost] = [
-        .init(id: 1, userName: "Name", userHandle: "@Username",
-              imageName: "sunset_photo", likeCount: 122),
-        .init(id: 2, userName: "Name", userHandle: "@Username",
-              imageName: "art_photo", likeCount: 87)
+    @State private var posts = [
+        BlogPost(
+            id: UUID(),
+            authorName: "Art Lover",
+            authorHandle: "@artlover22",
+            imageName: "sunset_photo",
+            likeCount: 122
+        ),
+        BlogPost(
+            id: UUID(),
+            authorName: "Creative Mind",
+            authorHandle: "@creative_mind",
+            imageName: "art_photo",
+            likeCount: 87
+        ),
+        BlogPost(
+            id: UUID(),
+            authorName: "Photo Master",
+            authorHandle: "@photomaster",
+            imageName: "nature_pic",
+            likeCount: 156
+        ),
+        BlogPost(
+            id: UUID(),
+            authorName: "Digital Artist",
+            authorHandle: "@digitalart",
+            imageName: "abstract_art",
+            likeCount: 203
+        )
     ]
     
-    var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                // Camera button
-                Button(action: {
-                    // camera action
-                }) {
-                    Image(systemName: "camera")
-                        .font(.system(size: 20))
-                        .foregroundColor(.black)
-                        .frame(width: 36, height: 36)
-                        .background(Color.gray.opacity(0.2))
-                        .clipShape(Circle())
-                }
-                
-                Spacer()
-                
-                Text("Explore")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.black)
-                
-                Spacer()
-                
-                // Search button
-                Button(action: {
-                    // navigate to search screen
-                }) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 20))
-                        .foregroundColor(.black)
-                        .frame(width: 36, height: 36)
-                        .background(Color.gray.opacity(0.2))
-                        .clipShape(Circle())
-                }
+    @State private var showingSearch = false
+    @State private var searchText = ""
+    
+    var filteredPosts: [BlogPost] {
+        if searchText.isEmpty {
+            return posts
+        } else {
+            return posts.filter { post in
+                post.authorName.localizedCaseInsensitiveContains(searchText) ||
+                post.authorHandle.localizedCaseInsensitiveContains(searchText)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            
-            // Content
-            ScrollView {
-                VStack(spacing: 20) {
-                    ForEach(posts) { post in
-                        ExploreCardView(post: post)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 16)
-            }
-            .background(Color(white: 0.95).ignoresSafeArea())
         }
     }
-}
-
-// MARK: – Card
-private struct ExploreCardView: View {
-    let post: ExplorePost
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // User header
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(Color.gray.opacity(0.4))
-                    .frame(width: 36, height: 36)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(post.userName)
-                        .font(.system(size: 16, weight: .bold))
+        ZStack {
+            Color(.white).edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("Explore")
+                        .font(.system(size: 23, weight: .semibold))
                         .foregroundColor(.black)
-                    Text(post.userHandle)
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        showingSearch = true
+                    }) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 20))
+                            .foregroundColor(.black)
+                            .frame(width: 36, height: 36)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        ForEach(filteredPosts) { post in
+                            PostCard(post: post)
+                        }
+                        Spacer(minLength: 120)
+                    }
+                    .padding(.top, -10)
                 }
             }
             
-            // Image
-            Image(post.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(height: 200)
-                .clipped()
-                .cornerRadius(16)
-            
-            // Likes
-            HStack(spacing: 6) {
-                Image(systemName: "heart")
-                Text("\(post.likeCount)")
-                    .fontWeight(.medium)
+            // Search Overlay
+            if showingSearch {
+                Color.black.opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        showingSearch = false
+                        searchText = ""
+                    }
+                
+                VStack {
+                    // Search Bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        
+                        TextField("Search users...", text: $searchText)
+                            .textFieldStyle(PlainTextFieldStyle())
+                        
+                        if !searchText.isEmpty {
+                            Button(action: {
+                                searchText = ""
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        Button("Cancel") {
+                            showingSearch = false
+                            searchText = ""
+                        }
+                        .foregroundColor(.blue)
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(radius: 5)
+                    .padding()
+                    
+                    // Search Results
+                    if !searchText.isEmpty {
+                        ScrollView {
+                            VStack(spacing: 12) {
+                                ForEach(filteredPosts) { post in
+                                    HStack {
+                                        Image(systemName: "person.crop.circle.fill")
+                                            .foregroundColor(.gray)
+                                            .frame(width: 40, height: 40)
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text(post.authorName)
+                                                .font(.headline)
+                                            Text(post.authorHandle)
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .onTapGesture {
+                                        showingSearch = false
+                                        searchText = ""
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .frame(maxHeight: 300)
+                    }
+                    
+                    Spacer()
+                }
             }
-            .foregroundColor(.black)
         }
-        .padding()
-        .background(Color(red: 0.92, green: 0.95, blue: 1.0))
-        .cornerRadius(24)
     }
 }
 
-// MARK: – Preview
-struct ExploreView_Previews: PreviewProvider {
-    static var previews: some View {
-        ExploreView()
-    }
+#Preview {
+    ExploreView()
 }
