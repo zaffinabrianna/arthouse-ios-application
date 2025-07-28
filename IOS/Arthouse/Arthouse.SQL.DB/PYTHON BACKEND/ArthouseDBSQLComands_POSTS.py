@@ -68,6 +68,20 @@ def get_user_posts_paginated(username, limit=5, offset=0):
         print(f"Failed to obtain posts for \"{username}\" : {e}")
         return None
 
+def get_post_id():
+    try:
+        query = """
+        SELECT * FROM post
+        WHERE username = %s
+        ORDER BY created_at DESC
+        LIMIT %s OFFSET %s
+        """
+        return run_read_multiple(query)
+    except Exception as e:
+        print(f"Failed to obtain post ID : {e}")
+        return None
+
+
 #probably not useful
 def get_all_posts():
     try:
@@ -350,6 +364,75 @@ def get_comment_count_for_post(post_id):
     except Exception as e:
         print(f"Failed to obtain comment count for \"{post_id}\" : {e}")
         return False
+
+
+
+################################################################################
+#    ALGOS
+
+
+## algo for home feed
+def get_home_feed_posts(username, limit=50):
+    query = """
+        SELECT post_id, username, post_description, like_count, comment_count, created_at
+        FROM post
+        WHERE username = %s
+           OR username IN (
+               SELECT followee
+               FROM follower_relationships
+               WHERE follower = %s
+           )
+        ORDER BY created_at DESC
+        LIMIT %s;
+    """
+    return run_read_multiple(query, (username, username, limit))
+
+
+## 
+def get_recommended_feed(username, limit=50):
+    # Step 1 & 2: Get top hashtags user liked
+    top_tags_query = """
+        SELECT h.hashtag
+        FROM hashtag h
+        JOIN user_liked_relationships ulr ON ulr.post_id = h.post_id
+        WHERE ulr.username = %s
+        GROUP BY h.hashtag
+        ORDER BY COUNT(*) DESC
+        LIMIT 5;
+    """
+    top_tags_results = run_read_multiple(top_tags_query, (username,))
+    top_tags = [row[0] for row in top_tags_results] if top_tags_results else []
+
+    if not top_tags:
+        # No liked posts or hashtags, just return recent posts
+        fallback_query = """
+            SELECT post_id, username, post_description, like_count, comment_count, created_at
+            FROM post
+            ORDER BY created_at DESC
+            LIMIT %s;
+        """
+        return run_read_multiple(fallback_query, (limit,))
+
+    # Prepare placeholders for top hashtags for SQL IN clause
+    placeholders = ','.join(['%s'] * 5)
+    hashtags_for_query = top_tags + [''] * (5 - len(top_tags))  # pad to 5 if fewer
+
+    recommended_query = f"""
+        SELECT DISTINCT p.post_id, p.username, p.post_description, p.like_count, p.comment_count, p.created_at,
+            CASE WHEN h.hashtag IS NOT NULL THEN 1 ELSE 0 END AS has_recommended_tag
+        FROM post p
+        LEFT JOIN hashtag h ON p.post_id = h.post_id AND h.hashtag IN ({placeholders})
+        ORDER BY has_recommended_tag DESC, p.created_at DESC
+        LIMIT %s;
+    """
+
+    params = hashtags_for_query + [limit]
+
+    return run_read_multiple(recommended_query, params)
+
+
+#####################################################################################
+
 
 # ----------------------
 # UPDATE 

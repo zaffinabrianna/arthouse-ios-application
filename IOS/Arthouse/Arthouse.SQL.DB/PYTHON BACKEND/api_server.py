@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import ArthouseDBSQLComands_USER as user_db
 from queryHelper import run_cud_query, run_read_multiple
+from MediaManager import get_signed_media_urls_by_post_id
 
 app = Flask(__name__)
 CORS(app)
@@ -158,3 +159,59 @@ def get_posts():
 if __name__ == '__main__':
     print("Starting Arthouse API...")
     app.run(debug=True, host='0.0.0.0', port=5001)
+
+
+# RETRIEVES URLS USING THE PYTHON BACKEND
+@app.route('/api/media-urls/<int:post_id>', methods=['GET'])
+def get_media_urls(post_id):
+    try:
+        urls = get_signed_media_urls_by_post_id(post_id)
+        if urls:
+            return jsonify({
+                "success": True,
+                "post_id": post_id,
+                "urls": urls
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "error": "No media found for this post"
+            }), 404
+    except Exception as e:
+        print(f"❌ Error fetching media URLs: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Server error: {str(e)}"
+        }), 500
+    
+# Fetch url for uploading
+@app.route('/api/media/upload-url', methods=['POST'])
+def get_upload_url():
+    data = request.json
+    filename = data.get('filename')
+    media_type = data.get('media_type')
+    # Validate input here...
+
+    try:
+        signed_url = agci.generate_upload_signed_url(bucket_name, filename, media_type)
+        return jsonify({"success": True, "upload_url": signed_url}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+
+
+@app.route('/api/media/upload', methods=['POST'])
+def upload_media():
+    data = request.json
+    post_id = data.get('post_id')
+    file_path = data.get('file_path')  # This should be a path accessible to your backend (or change design to accept file bytes or upload URL)
+    media_type = data.get('media_type')
+    
+    if not all([post_id, file_path, media_type]):
+        return jsonify({"success": False, "error": "Missing parameters"}), 400
+    
+    success = create_media(post_id, file_path, media_type)
+    if success:
+        return jsonify({"success": True, "message": "Media uploaded and recorded in DB"})
+    else:
+        return jsonify({"success": False, "error": "Failed to upload media"}), 500
