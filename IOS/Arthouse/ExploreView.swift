@@ -8,39 +8,11 @@
 import SwiftUI
 
 struct ExploreView: View {
-    @State private var posts = [
-        BlogPost(
-            id: UUID(),
-            authorName: "Art Lover",
-            authorHandle: "@artlover22",
-            imageName: "sunset_photo",
-            likeCount: 122
-        ),
-        BlogPost(
-            id: UUID(),
-            authorName: "Creative Mind",
-            authorHandle: "@creative_mind",
-            imageName: "art_photo",
-            likeCount: 87
-        ),
-        BlogPost(
-            id: UUID(),
-            authorName: "Photo Master",
-            authorHandle: "@photomaster",
-            imageName: "nature_pic",
-            likeCount: 156
-        ),
-        BlogPost(
-            id: UUID(),
-            authorName: "Digital Artist",
-            authorHandle: "@digitalart",
-            imageName: "abstract_art",
-            likeCount: 203
-        )
-    ]
-    
+    @EnvironmentObject var authVM: AuthViewModel
+    @State private var posts: [BlogPost] = []
     @State private var showingSearch = false
     @State private var searchText = ""
+    @State private var isLoading = false
     
     var filteredPosts: [BlogPost] {
         if searchText.isEmpty {
@@ -82,12 +54,33 @@ struct ExploreView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        ForEach(filteredPosts) { post in
-                            PostCard(post: post)
+                        if isLoading {
+                            ProgressView()
+                                .padding()
+                        } else if filteredPosts.isEmpty {
+                            VStack(spacing: 16) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.gray.opacity(0.5))
+                                Text(searchText.isEmpty ? "No posts to explore" : "No results found")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                                Text(searchText.isEmpty ? "Check back later for new content" : "Try a different search term")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray.opacity(0.7))
+                            }
+                            .padding(.top, 100)
+                        } else {
+                            ForEach(filteredPosts) { post in
+                                PostCard(post: post)
+                            }
                         }
                         Spacer(minLength: 120)
                     }
                     .padding(.top, -10)
+                }
+                .refreshable {
+                    await fetchExplorePosts()
                 }
             }
             
@@ -168,6 +161,65 @@ struct ExploreView: View {
                 }
             }
         }
+        .onAppear {
+            fetchExplorePosts()
+        }
+    }
+    
+    func fetchExplorePosts() {
+        Task {
+            await fetchExplorePosts()
+        }
+    }
+    
+    @MainActor
+    func fetchExplorePosts() async {
+        isLoading = true
+        
+        guard let url = URL(string: "http://localhost:5001/api/posts") else {
+            print("Invalid URL")
+            isLoading = false
+            return
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let success = json["success"] as? Bool, success,
+               let postsArray = json["posts"] as? [[String: Any]] {
+                
+                let currentUsername = authVM.currentUser?.username ?? ""
+                var fetchedPosts: [BlogPost] = []
+                
+                for postData in postsArray {
+                    if let username = postData["username"] as? String,
+                       let caption = postData["caption"] as? String,
+                       username != currentUsername { // Exclude your own posts from explore
+                        
+                        let post = BlogPost(
+                            id: UUID(),
+                            authorName: username.capitalized,
+                            authorHandle: "@\(username)",
+                            imageName: "placeholder_image",
+                            likeCount: postData["like_count"] as? Int ?? 0,
+                            caption: caption
+                        )
+                        fetchedPosts.append(post)
+                    }
+                }
+                
+                self.posts = fetchedPosts
+                print("✅ Loaded \(fetchedPosts.count) posts in explore (excluding your own)")
+            } else {
+                print("No posts found or invalid response")
+                self.posts = []
+            }
+        } catch {
+            print("Error fetching explore posts: \(error)")
+        }
+        
+        isLoading = false
     }
 }
 

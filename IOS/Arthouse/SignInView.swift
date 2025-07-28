@@ -27,14 +27,12 @@ struct SignInView: View {
                 .ignoresSafeArea()
 
             // 2) Bottom curved panel behind everything
-            VStack {
-                Spacer()
-                RoundedRectangle(cornerRadius: 32, style: .continuous)
-                    .fill(Color(red: 0.52, green: 0.67, blue: 0.96))
-                    .frame(height: bottomPanelHeight)
-                    .ignoresSafeArea(edges: .bottom)
-            }
-            .zIndex(0)
+            RoundedRectangle(cornerRadius: 32, style: .continuous)
+                .fill(Color(red: 0.52, green: 0.67, blue: 0.96))
+                .frame(height: bottomPanelHeight)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .ignoresSafeArea(edges: .bottom)
+                .zIndex(0)
 
             // 3) Main content
             VStack(spacing: 0) {
@@ -137,6 +135,18 @@ struct SignInView: View {
             }
             .padding(.bottom, bottomPanelHeight)
             .zIndex(1)
+
+            // React to login result
+            .onReceive(authViewModel.$errorMessage) { newError in
+                if let newError = newError {
+                    errorMsg = newError
+                }
+            }
+            .onReceive(authViewModel.$isLoggedIn) { loggedIn in
+                if loggedIn {
+                    errorMsg = ""
+                }
+            }
         }
     }
 
@@ -189,11 +199,11 @@ struct SignInView: View {
 
         isLoading = true
         errorMsg = ""
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            authViewModel.login(username: username, password: password)
-            if !authViewModel.isLoggedIn {
-                errorMsg = "Invalid credentials"
-            }
+
+        authViewModel.login(username: username, password: password)
+
+        // Give time for async login to finish
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isLoading = false
         }
     }

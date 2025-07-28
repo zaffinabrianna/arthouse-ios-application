@@ -16,22 +16,8 @@ extension Color {
 struct FeedView: View {
     @Binding var selectedTab: Int
     @Binding var showUpload: Bool
-    @State private var posts = [
-        BlogPost(
-            id: UUID(),
-            authorName: "Art Lover",
-            authorHandle: "@artlover22",
-            imageName: "sunset_photo",
-            likeCount: 122
-        ),
-        BlogPost(
-            id: UUID(),
-            authorName: "Creative Mind",
-            authorHandle: "@creative_mind",
-            imageName: "art_photo",
-            likeCount: 88
-        )
-    ]
+    @State private var posts: [BlogPost] = []
+    @State private var isLoading = false
     
     var body: some View {
         ZStack {
@@ -39,12 +25,30 @@ struct FeedView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
-                    ForEach(posts) { post in
-                        PostCard(post: post)
+                    if isLoading {
+                        ProgressView()
+                            .padding()
+                    } else if posts.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "photo.on.rectangle")
+                                .font(.system(size: 50))
+                                .foregroundColor(.gray.opacity(0.5))
+                            Text("No posts yet")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                            Text("Be the first to share something!")
+                                .font(.subheadline)
+                                .foregroundColor(.gray.opacity(0.7))
+                        }
+                        .padding(.top, 100)
+                    } else {
+                        ForEach(posts) { post in
+                            PostCard(post: post)
+                        }
                     }
-                    Spacer(minLength: 120) // spacing for custom tab bar
+                    Spacer(minLength: 120)
                 }
-                .padding(.top, -20) // Pull content closer to title
+                .padding(.top, -20)
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -53,7 +57,72 @@ struct FeedView: View {
                         .foregroundColor(.black)
                 }
             }
+            .refreshable {
+                await fetchPosts()
+            }
         }
+        .onAppear {
+            fetchPosts()
+        }
+        .onChange(of: selectedTab) { newTab in
+            if newTab == 0 { // Feed tab
+                fetchPosts()
+            }
+        }
+    }
+    
+    func fetchPosts() {
+        Task {
+            await fetchPosts()
+        }
+    }
+    
+    @MainActor
+    func fetchPosts() async {
+        isLoading = true
+        
+        guard let url = URL(string: "http://localhost:5001/api/posts") else {
+            print("Invalid URL")
+            isLoading = false
+            return
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let success = json["success"] as? Bool, success,
+               let postsArray = json["posts"] as? [[String: Any]] {
+                
+                var fetchedPosts: [BlogPost] = []
+                
+                for postData in postsArray {
+                    if let username = postData["username"] as? String,
+                       let caption = postData["caption"] as? String {
+                        
+                        let post = BlogPost(
+                            id: UUID(),
+                            authorName: username.capitalized,
+                            authorHandle: "@\(username)",
+                            imageName: "placeholder_image",
+                            likeCount: postData["like_count"] as? Int ?? 0,
+                            caption: caption
+                        )
+                        fetchedPosts.append(post)
+                    }
+                }
+                
+                self.posts = fetchedPosts
+                print("✅ Loaded \(fetchedPosts.count) posts in feed")
+            } else {
+                print("No posts found or invalid response")
+                self.posts = []
+            }
+        } catch {
+            print("Error fetching posts: \(error)")
+        }
+        
+        isLoading = false
     }
 }
 
@@ -88,34 +157,30 @@ struct PostCard: View {
                 Spacer()
             }
             
+            // Caption display
+            if !post.caption.isEmpty {
+                Text(post.caption)
+                    .font(.system(size: 16))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
+            }
+            
             ZStack(alignment: .bottomLeading) {
-                // Handle missing image gracefully
-                Group {
-                    if let uiImage = UIImage(named: post.imageName) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 260)
-                            .clipped()
-                            .cornerRadius(20)
-                    } else {
-                        // Fallback placeholder
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 260)
-                            .cornerRadius(20)
-                            .overlay(
-                                VStack {
-                                    Image(systemName: "photo")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.gray)
-                                    Text("Image: \(post.imageName)")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            )
-                    }
-                }
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 260)
+                    .cornerRadius(20)
+                    .overlay(
+                        VStack {
+                            Image(systemName: "photo")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray)
+                            Text("New Post")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    )
                 
                 HStack(spacing: 6) {
                     Button(action: {
@@ -148,7 +213,6 @@ struct PostCard: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     FeedView(selectedTab: .constant(0), showUpload: .constant(false))
 }

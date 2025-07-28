@@ -15,19 +15,14 @@ struct ProfileView: View {
     @State private var showingEditProfile = false
     @State private var showingFollowers = false
     @State private var showingFollowing = false
+    @State private var userPosts: [BlogPost] = []
+    @State private var isLoading = false
     
     var username: String {
         "@\(authVM.currentUser?.username ?? "username")"
     }
     
     let bio = "This is where the user writes their bio"
-    
-    let posts = [
-        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "underwater_photo", likeCount: 45),
-        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "sunset_photo", likeCount: 78),
-        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "art_photo", likeCount: 123),
-        BlogPost(id: UUID(), authorName: "Your Name", authorHandle: "@username", imageName: "nature_photo", likeCount: 67)
-    ]
     
     var body: some View {
         GeometryReader { geometry in
@@ -113,12 +108,19 @@ struct ProfileView: View {
                                 .padding(.horizontal, 40)
                         }
                         
-
-                        
                         VStack(spacing: 8) {
-                            Text("All Posts")
-                                .font(.system(size: 25, weight: .medium))
-                                .foregroundColor(.black)
+                            HStack {
+                                Text("All Posts")
+                                    .font(.system(size: 25, weight: .medium))
+                                    .foregroundColor(.black)
+                                
+                                Spacer()
+                                
+                                Text("\(userPosts.count)")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.horizontal, 20)
                             
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
@@ -127,26 +129,52 @@ struct ProfileView: View {
                         }
                         
                         ScrollView {
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 2) {
-                                ForEach(0..<posts.count, id: \.self) { index in
-                                    NavigationLink(destination: PostDetailView(post: posts[index])) {
-                                        Rectangle()
-                                            .fill(Color.blue.opacity(0.3))
-                                            .aspectRatio(1, contentMode: .fit)
-                                            .overlay(
-                                                Image(systemName: getPlaceholderIcon(for: index))
-                                                    .foregroundColor(.white)
-                                                    .font(.system(size: 30))
-                                            )
+                            if isLoading {
+                                ProgressView()
+                                    .padding()
+                            } else if userPosts.isEmpty {
+                                VStack(spacing: 16) {
+                                    Image(systemName: "plus.circle")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(.gray.opacity(0.5))
+                                    Text("No posts yet")
+                                        .font(.headline)
+                                        .foregroundColor(.gray)
+                                    Text("Share your first post!")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray.opacity(0.7))
+                                }
+                                .padding(.top, 50)
+                            } else {
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ], spacing: 2) {
+                                    ForEach(0..<userPosts.count, id: \.self) { index in
+                                        NavigationLink(destination: PostDetailView(post: userPosts[index])) {
+                                            Rectangle()
+                                                .fill(Color.blue.opacity(0.3))
+                                                .aspectRatio(1, contentMode: .fit)
+                                                .overlay(
+                                                    VStack {
+                                                        Image(systemName: "photo")
+                                                            .foregroundColor(.white)
+                                                            .font(.system(size: 20))
+                                                        Text("Post \(index + 1)")
+                                                            .foregroundColor(.white)
+                                                            .font(.caption)
+                                                    }
+                                                )
+                                        }
                                     }
                                 }
+                                .padding(.horizontal, 20)
+                                .padding(.top, 10)
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.top, 10)
+                        }
+                        .refreshable {
+                            await fetchUserPosts()
                         }
                     }
                     .padding(.top, 60)
@@ -182,17 +210,70 @@ struct ProfileView: View {
         .sheet(isPresented: $showingFollowing) {
             FollowingView()
         }
+        .onAppear {
+            fetchUserPosts()
+        }
     }
     
-    func toggleFollow() {
-        isFollowing.toggle()
-        if isFollowing {
-            followerCount += 1
-            print("Started following user")
-        } else {
-            followerCount -= 1
-            print("Unfollowed user")
+    func fetchUserPosts() {
+        Task {
+            await fetchUserPosts()
         }
+    }
+    
+    @MainActor
+    func fetchUserPosts() async {
+        isLoading = true
+        
+        guard let currentUsername = authVM.currentUser?.username else {
+            print("No current user")
+            isLoading = false
+            return
+        }
+        
+        guard let url = URL(string: "http://localhost:5001/api/posts") else {
+            print("Invalid URL")
+            isLoading = false
+            return
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let success = json["success"] as? Bool, success,
+               let postsArray = json["posts"] as? [[String: Any]] {
+                
+                var fetchedPosts: [BlogPost] = []
+                
+                for postData in postsArray {
+                    if let username = postData["username"] as? String,
+                       let caption = postData["caption"] as? String,
+                       username == currentUsername { // Only show your own posts
+                        
+                        let post = BlogPost(
+                            id: UUID(),
+                            authorName: username.capitalized,
+                            authorHandle: "@\(username)",
+                            imageName: "placeholder_image",
+                            likeCount: postData["like_count"] as? Int ?? 0,
+                            caption: caption
+                        )
+                        fetchedPosts.append(post)
+                    }
+                }
+                
+                self.userPosts = fetchedPosts
+                print("✅ Loaded \(fetchedPosts.count) posts for user profile")
+            } else {
+                print("No posts found or invalid response")
+                self.userPosts = []
+            }
+        } catch {
+            print("Error fetching user posts: \(error)")
+        }
+        
+        isLoading = false
     }
     
     func getPlaceholderIcon(for index: Int) -> String {

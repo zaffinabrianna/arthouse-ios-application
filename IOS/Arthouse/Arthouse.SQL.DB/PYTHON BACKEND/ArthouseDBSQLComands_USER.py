@@ -295,16 +295,16 @@ def unfollow(follower_username, followee_username):
 # create_profile("Rally-God-123", "MichèleMouton", "URL HERE", "Michèle Hélène Raymonde Mouton (born 23 June 1951) is a French former rally driver. Competing in the World Rally Championship for the Audi factory team, she took four victories and finished runner-up in the drivers' world championship in 1982.")
 # create_profile("dog", "dog", "dog pic here", "dog")
 
-create_user("Jolyne", "jojo@jojo.joe", "joe")
-update_user("Jolyne", new_username="Jojo", password="soup")
-create_profile("Jolyne", "Jojo", "URL", "Jojo Reference Here")
-print(get_profile_by_username("Jojo"))
-print(get_profile_by_username("dog"))
-follow("Jojo", "dog")
-follow("dog", "Artismo")
-print(view_all_relationships())
-delete_user("Jojo")
-print(view_all_relationships())
+#create_user("Jolyne", "jojo@jojo.joe", "joe")
+#update_user("Jolyne", new_username="Jojo", password="soup")
+#create_profile("Jolyne", "Jojo", "URL", "Jojo Reference Here")
+#print(get_profile_by_username("Jojo"))
+#print(get_profile_by_username("dog"))
+#follow("Jojo", "dog")
+#follow("dog", "Artismo")
+#print(view_all_relationships())
+#delete_user("Jojo")
+#print(view_all_relationships())
 
 
 #TEST profile

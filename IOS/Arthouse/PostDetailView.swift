@@ -217,7 +217,9 @@ struct PostDetailView_Previews: PreviewProvider {
                 authorName: "Demo User",
                 authorHandle: "@demo",
                 imageName: "sunset_photo",
-                likeCount: 122
+                likeCount: 122,
+                caption: "Demo caption for preview"
+
             )
         )
     }

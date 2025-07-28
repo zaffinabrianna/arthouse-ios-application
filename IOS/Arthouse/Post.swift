@@ -13,4 +13,5 @@ struct BlogPost: Identifiable, Hashable {
     let authorHandle: String   // e.g. "@Username"
     let imageName: String      // must match an asset in your catalog
     let likeCount: Int
+    let caption: String        // NEW: The post caption/description
 }
