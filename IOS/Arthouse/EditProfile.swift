@@ -1,18 +1,24 @@
+//
+//  EditProfile.swift
+//  Arthouse
+//
+//  Created by Roberto Chavez on 7/25/25.
+//
+
 import SwiftUI
 
 struct EditProfile: View {
+    @EnvironmentObject var authVM: AuthViewModel
+    @Environment(\.dismiss) private var dismiss
     @State private var isFollowing = false
     @State private var followerCount = 100
     @State private var followingCount = 342
-    
-    @State private var username = "@Username"
+    @State private var username: String = ""
     @State private var bio = "This is where the user writes their bio"
     
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
-                
-                // Blue background
                 LinearGradient(
                     gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.blue]),
                     startPoint: .top,
@@ -20,11 +26,9 @@ struct EditProfile: View {
                 )
                 .ignoresSafeArea()
                 
-                // Top Buttons
                 HStack {
-                    // Back Button
                     Button(action: {
-                        print("Back button tapped")
+                        dismiss()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.black)
@@ -36,9 +40,9 @@ struct EditProfile: View {
                     
                     Spacer()
                     
-                    // Done Button
                     Button(action: {
-                        print("Done button tapped")
+                        print("Done button tapped - saving changes")
+                        dismiss()
                     }) {
                         Text("Done")
                             .foregroundColor(.black)
@@ -54,10 +58,9 @@ struct EditProfile: View {
                 .zIndex(2)
                 
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 180) // space for floating profile pic
+                    Spacer().frame(height: 180)
                     
                     VStack(spacing: 20) {
-                        // Follower / Following
                         HStack(spacing: 200) {
                             VStack(spacing: 4) {
                                 Text("\(followerCount)")
@@ -78,7 +81,6 @@ struct EditProfile: View {
                             }
                         }
                         
-                        // Editable Username Field
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Your Username")
                                 .font(.system(size: 20, weight: .medium))
@@ -92,7 +94,6 @@ struct EditProfile: View {
                                 .shadow(radius: 2)
                         }
                         
-                        // Editable Bio Field
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Your Bio")
                                 .font(.system(size: 20, weight: .medium))
@@ -105,13 +106,11 @@ struct EditProfile: View {
                                 .background(Color.white)
                                 .cornerRadius(10)
                                 .shadow(radius: 2)
-                            
                                 .padding(.bottom, 25)
                         }
                         
-                        // Sign Out Button
                         Button(action: {
-                            print("Signed out tapped")
+                            authVM.logout()
                         }) {
                             Text("Sign Out")
                                 .font(.system(size: 20, weight: .medium))
@@ -122,7 +121,6 @@ struct EditProfile: View {
                                 .cornerRadius(12)
                         }
                         
-                        // Delete Account Button
                         Button(action: {
                             print("Delete account tapped")
                         }) {
@@ -148,7 +146,6 @@ struct EditProfile: View {
                 }
                 .zIndex(1)
                 
-                // Floating Profile Picture (on top of white + blue)
                 Circle()
                     .fill(Color.white)
                     .frame(width: 100, height: 100)
@@ -160,6 +157,9 @@ struct EditProfile: View {
                     .offset(y: 130)
                     .zIndex(3)
             }
+        }
+        .onAppear {
+            username = "@\(authVM.currentUser?.username ?? "username")"
         }
     }
 }

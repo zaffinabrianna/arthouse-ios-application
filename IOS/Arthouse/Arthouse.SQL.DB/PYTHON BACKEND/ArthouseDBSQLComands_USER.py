@@ -99,7 +99,7 @@ def verify_user_login(username, password_attempt):
     query = "SELECT password_hash FROM user WHERE username = %s"
     result = run_read_single(query, (username,))
     if result:
-        stored_hash = result
+        stored_hash = result[0]  # ← FIX: Get the first element from the tuple
         if bcrypt.checkpw(password_attempt.encode('utf-8'), stored_hash.encode('utf-8')):
             return True  # Successful login
     return False

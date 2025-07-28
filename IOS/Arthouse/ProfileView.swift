@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject var authVM: AuthViewModel
     @State private var isFollowing = false
     @State private var followerCount = 100
     @State private var followingCount = 342
@@ -15,7 +16,10 @@ struct ProfileView: View {
     @State private var showingFollowers = false
     @State private var showingFollowing = false
     
-    let username = "@Username"
+    var username: String {
+        "@\(authVM.currentUser?.username ?? "username")"
+    }
+    
     let bio = "This is where the user writes their bio"
     
     let posts = [
@@ -28,7 +32,6 @@ struct ProfileView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
-                // Blue background
                 LinearGradient(
                     gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.blue]),
                     startPoint: .top,
@@ -36,19 +39,16 @@ struct ProfileView: View {
                 )
                 .ignoresSafeArea()
                 
-                // Edit and Back Buttons
                 HStack {
-                    //Back Button:
                     Button(action: {
                         print("Back button tapped")
                     }) {
-                        // BACK BUTTON FRONT-END:
                         Image(systemName: "chevron.left")
-                            .foregroundColor(.black) // Button Text Color
-                            .font(.system(size: 20)) // Button Text Font
-                            .padding(12) // Padding (helps make button bigger)
-                            .background(Color.white.opacity(0.7)) // Button Background
-                            .clipShape(Circle()) // Button Shape
+                            .foregroundColor(.black)
+                            .font(.system(size: 20))
+                            .padding(12)
+                            .background(Color.white.opacity(0.7))
+                            .clipShape(Circle())
                     }
                     
                     Spacer()
@@ -56,14 +56,13 @@ struct ProfileView: View {
                     Button(action: {
                         showingEditProfile = true
                     }) {
-                        // EDIT BUTTON FRONT-END:
                         Text("Edit")
-                            .foregroundColor(.black) // Edit Button Text Color
-                            .font(.system(size: 16, weight: .medium)) // Edit Button Font & Weight
-                            .padding(.horizontal, 20) // Padding for button
-                            .padding(.vertical, 8) // Padding
-                            .background(Color.white.opacity(0.7)) // Button Color
-                            .cornerRadius(20) // Make into Oval
+                            .foregroundColor(.black)
+                            .font(.system(size: 16, weight: .medium))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.7))
+                            .cornerRadius(20)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -71,18 +70,16 @@ struct ProfileView: View {
                 .zIndex(2)
                 
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 180) // for floating profile pic
+                    Spacer().frame(height: 180)
                     
                     VStack(spacing: 16) {
-                        // Follower / Following:
                         HStack(spacing: 200) {
-                            // FOLLOWER FRONT END - Now tappable:
                             Button(action: {
                                 showingFollowers = true
                             }) {
                                 VStack(spacing: 4) {
                                     Text("\(followerCount)")
-                                        .font(.system(size: 20, weight: .bold)) // Count of Followers
+                                        .font(.system(size: 20, weight: .bold))
                                         .foregroundColor(.black)
                                     Text("Followers")
                                         .font(.system(size: 15))
@@ -90,7 +87,6 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            // FOLLOWING FRONT END - Now tappable:
                             Button(action: {
                                 showingFollowing = true
                             }) {
@@ -105,14 +101,11 @@ struct ProfileView: View {
                             }
                         }
                         
-                        // Username and Bio
                         VStack(spacing: 8) {
-                            //USERNAME FRONT-END:
                             Text(username)
                                 .font(.system(size: 25, weight: .semibold))
                                 .foregroundColor(.black)
                             
-                            //BIO FRONT-END
                             Text(bio)
                                 .font(.system(size: 15))
                                 .foregroundColor(.gray)
@@ -120,20 +113,8 @@ struct ProfileView: View {
                                 .padding(.horizontal, 40)
                         }
                         
-                        // Follow Button
-                        Button(action: {
-                            toggleFollow()
-                        }) {
-                            Text(isFollowing ? "Following" : "Follow")
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(width: 120, height: 40)
-                                .background(isFollowing ? Color.gray : Color.blue)
-                                .cornerRadius(20)
-                                .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 4)
-                        }
+
                         
-                        // All Posts Section
                         VStack(spacing: 8) {
                             Text("All Posts")
                                 .font(.system(size: 25, weight: .medium))
@@ -145,7 +126,6 @@ struct ProfileView: View {
                                 .padding(.horizontal, 20)
                         }
                         
-                        // Post Grid - Now with NavigationLink
                         ScrollView {
                             LazyVGrid(columns: [
                                 GridItem(.flexible()),
@@ -170,7 +150,7 @@ struct ProfileView: View {
                         }
                     }
                     .padding(.top, 60)
-                    .padding(.bottom, 140) // Extra space for tab bar
+                    .padding(.bottom, 140)
                     .frame(maxWidth: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 30)
@@ -180,7 +160,6 @@ struct ProfileView: View {
                 }
                 .zIndex(1)
                 
-                // Floating Profile Picture
                 Circle()
                     .fill(Color.white)
                     .frame(width: 100, height: 100)
@@ -195,6 +174,7 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showingEditProfile) {
             EditProfile()
+                .environmentObject(authVM)
         }
         .sheet(isPresented: $showingFollowers) {
             FollowersView()
@@ -204,7 +184,6 @@ struct ProfileView: View {
         }
     }
     
-    // Toggle follow status
     func toggleFollow() {
         isFollowing.toggle()
         if isFollowing {
@@ -216,7 +195,6 @@ struct ProfileView: View {
         }
     }
     
-    // Placeholder icons
     func getPlaceholderIcon(for index: Int) -> String {
         let icons = ["figure.diving", "sunset", "paintpalette", "leaf"]
         return icons[index % icons.count]
