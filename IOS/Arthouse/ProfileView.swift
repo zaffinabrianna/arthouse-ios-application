@@ -34,18 +34,8 @@ struct ProfileView: View {
                 )
                 .ignoresSafeArea()
                 
+                // Header with only Edit button (removed back button)
                 HStack {
-                    Button(action: {
-                        print("Back button tapped")
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.black)
-                            .font(.system(size: 20))
-                            .padding(12)
-                            .background(Color.white.opacity(0.7))
-                            .clipShape(Circle())
-                    }
-                    
                     Spacer()
                     
                     Button(action: {
@@ -151,21 +141,24 @@ struct ProfileView: View {
                                     GridItem(.flexible()),
                                     GridItem(.flexible())
                                 ], spacing: 2) {
-                                    ForEach(0..<userPosts.count, id: \.self) { index in
-                                        NavigationLink(destination: PostDetailView(post: userPosts[index])) {
-                                            Rectangle()
-                                                .fill(Color.blue.opacity(0.3))
-                                                .aspectRatio(1, contentMode: .fit)
-                                                .overlay(
-                                                    VStack {
+                                    ForEach(userPosts, id: \.id) { post in
+                                        NavigationLink(destination: PostDetailView(post: post)) {
+                                            AsyncImage(url: URL(string: post.imageName)) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: (UIScreen.main.bounds.width - 44) / 3, height: (UIScreen.main.bounds.width - 44) / 3)
+                                                    .clipped()
+                                            } placeholder: {
+                                                Rectangle()
+                                                    .fill(Color.gray.opacity(0.2))
+                                                    .frame(width: (UIScreen.main.bounds.width - 44) / 3, height: (UIScreen.main.bounds.width - 44) / 3)
+                                                    .overlay(
                                                         Image(systemName: "photo")
-                                                            .foregroundColor(.white)
-                                                            .font(.system(size: 20))
-                                                        Text("Post \(index + 1)")
-                                                            .foregroundColor(.white)
-                                                            .font(.caption)
-                                                    }
-                                                )
+                                                            .font(.system(size: 25))
+                                                            .foregroundColor(.gray.opacity(0.5))
+                                                    )
+                                            }
                                         }
                                     }
                                 }
@@ -249,13 +242,17 @@ struct ProfileView: View {
                 for postData in postsArray {
                     if let username = postData["username"] as? String,
                        let caption = postData["caption"] as? String,
+                       let postId = postData["post_id"] as? Int,
                        username == currentUsername { // Only show your own posts
+                        
+                        let imageUrl = postData["image_url"] as? String ?? ""
                         
                         let post = BlogPost(
                             id: UUID(),
+                            postId: postId,  // Real database ID
                             authorName: username.capitalized,
                             authorHandle: "@\(username)",
-                            imageName: "placeholder_image",
+                            imageName: imageUrl.isEmpty ? "placeholder_image" : imageUrl,
                             likeCount: postData["like_count"] as? Int ?? 0,
                             caption: caption
                         )
