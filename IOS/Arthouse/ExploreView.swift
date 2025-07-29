@@ -30,7 +30,7 @@ struct ExploreView: View {
             Color(.white).edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 0) {
-                // Header
+                // Header - restored to original working spacing
                 HStack {
                     Text("Explore")
                         .font(.system(size: 23, weight: .semibold))
@@ -49,7 +49,7 @@ struct ExploreView: View {
                             .clipShape(Circle())
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 
                 ScrollView {
@@ -197,11 +197,19 @@ struct ExploreView: View {
                        let caption = postData["caption"] as? String,
                        username != currentUsername { // Exclude your own posts from explore
                         
+                        // Get real image URL or use placeholder
+                        let imageUrl = postData["image_url"] as? String ?? ""
+                        let postId = postData["post_id"] as? Int ?? 0
+                        
+                        // Debug line to see what images we're getting
+                        print("🔍 Debug Explore: username=\(username), imageUrl='\(imageUrl)'")
+                        
                         let post = BlogPost(
                             id: UUID(),
+                            postId: postId,
                             authorName: username.capitalized,
                             authorHandle: "@\(username)",
-                            imageName: "placeholder_image",
+                            imageName: imageUrl.isEmpty ? "placeholder_image" : imageUrl,
                             likeCount: postData["like_count"] as? Int ?? 0,
                             caption: caption
                         )
