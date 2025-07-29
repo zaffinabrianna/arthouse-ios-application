@@ -77,134 +77,59 @@ struct FeedView: View {
         }
     }
     
-    //1st itteration
-    // @MainActor
-    // func fetchPosts() async {
-    //     isLoading = true
+    @MainActor
+    func fetchPosts() async {
+        isLoading = true
         
-    //     guard let url = URL(string: "http://localhost:5001/api/posts") else {
-    //         print("Invalid URL")
-    //         isLoading = false
-    //         return
-    //     }
-        
-    //     do {
-    //         let (data, _) = try await URLSession.shared.data(from: url)
-            
-    //         if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-    //            let success = json["success"] as? Bool, success,
-    //            let postsArray = json["posts"] as? [[String: Any]] {
-                
-    //             var fetchedPosts: [BlogPost] = []
-                
-    //             for postData in postsArray {
-    //                 if let username = postData["username"] as? String,
-    //                    let caption = postData["caption"] as? String {
-                        
-    //                     let post = BlogPost(
-    //                         id: UUID(),
-    //                         authorName: username.capitalized,
-    //                         authorHandle: "@\(username)",
-    //                         imageName: "placeholder_image",
-    //                         likeCount: postData["like_count"] as? Int ?? 0,
-    //                         caption: caption
-    //                     )
-    //                     fetchedPosts.append(post)
-    //                 }
-    //             }
-                
-    //             self.posts = fetchedPosts
-    //             print("✅ Loaded \(fetchedPosts.count) posts in feed")
-    //         } else {
-    //             print("No posts found or invalid response")
-    //             self.posts = []
-    //         }
-    //     } catch {
-    //         print("Error fetching posts: \(error)")
-    //     }
-
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////
-        //helper function for the function second version of fetchPosts()
-        func fetchMediaURL(for postID: Int) async -> String? {
-            guard let url = URL(string: "http://localhost:5001/api/media_urls/\(postID)") else {
-                return nil
-            }
-
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-                
-                if let success = json?["success"] as? Bool, success,
-                let urls = json?["urls"] as? [String], !urls.isEmpty {
-                    return urls.first
-                }
-            } catch {
-                print("⚠️ Failed to fetch media URL for post \(postID): \(error)")
-            }
-
-            return nil
+        guard let url = URL(string: "http://localhost:5001/api/posts") else {
+            print("Invalid URL")
+            isLoading = false
+            return
         }
-
-        /////////////////////////////////////////////////////
-        //2nd itteration (test and remove the first if correct)
-        @MainActor
-        func fetchPosts() async {
-            isLoading = true
-
-            guard let url = URL(string: "http://localhost:5001/api/posts") else {
-                print("Invalid URL")
-                isLoading = false
-                return
-            }
-
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let success = json["success"] as? Bool, success,
-                let postsArray = json["posts"] as? [[String: Any]] {
-
-                    var fetchedPosts: [BlogPost] = []
-
-                    for postData in postsArray {
-                        guard let username = postData["username"] as? String,
-                            let caption = postData["caption"] as? String,
-                            let postID = postData["post_id"] as? Int else {
-                            continue
-                        }
-
-                        // Fetch media URL for this post
-                        let mediaURL = await fetchMediaURL(for: postID)
-
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let success = json["success"] as? Bool, success,
+               let postsArray = json["posts"] as? [[String: Any]] {
+                
+                var fetchedPosts: [BlogPost] = []
+                
+                for postData in postsArray {
+                    if let username = postData["username"] as? String,
+                       let caption = postData["caption"] as? String,
+                       let postId = postData["post_id"] as? Int {
+                        
+                        // Get image URL from API response
+                        let imageUrl = postData["image_url"] as? String ?? ""
+                        
                         let post = BlogPost(
                             id: UUID(),
+                            postId: postId,  // Real database ID
                             authorName: username.capitalized,
                             authorHandle: "@\(username)",
-                            imageName: mediaURL ?? "placeholder_image", // Use actual URL or fallback
+                            imageName: imageUrl.isEmpty ? "placeholder_image" : imageUrl,
                             likeCount: postData["like_count"] as? Int ?? 0,
                             caption: caption
                         )
                         fetchedPosts.append(post)
                     }
-
-                    self.posts = fetchedPosts
-                    print("✅ Loaded \(fetchedPosts.count) posts with media")
-                } else {
-                    print("No posts found or invalid response")
-                    self.posts = []
                 }
-            } catch {
-                print("Error fetching posts: \(error)")
+                
+                self.posts = fetchedPosts
+                print("✅ Loaded \(fetchedPosts.count) posts in feed")
+            } else {
+                print("No posts found or invalid response")
+                self.posts = []
             }
-        /////////////////////////////////////////////////////
-
-
+        } catch {
+            print("Error fetching posts: \(error)")
+        }
         
         isLoading = false
     }
 }
-
 
 // MARK: - Post Card
 struct PostCard: View {
@@ -247,20 +172,41 @@ struct PostCard: View {
             }
             
             ZStack(alignment: .bottomLeading) {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
+                // Real image or placeholder
+                if !post.imageName.isEmpty && post.imageName != "placeholder_image" {
+                    // Real image from URL with proper aspect ratio
+                    AsyncImage(url: URL(string: post.imageName)) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .overlay(
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                            )
+                    }
                     .frame(height: 260)
+                    .clipped()
                     .cornerRadius(20)
-                    .overlay(
-                        VStack {
-                            Image(systemName: "photo")
-                                .font(.system(size: 40))
-                                .foregroundColor(.gray)
-                            Text("New Post")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    )
+                } else {
+                    // Placeholder
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 260)
+                        .cornerRadius(20)
+                        .overlay(
+                            VStack {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                Text("No Image")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        )
+                }
                 
                 HStack(spacing: 6) {
                     Button(action: {
