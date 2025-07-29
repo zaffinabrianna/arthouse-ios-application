@@ -93,16 +93,44 @@ def delete_user(username):
         return False
 
 # ----------------------
-# LOGIN / VERIFY PASSWORD
+# LOGIN / VERIFY PASSWORD - FIXED VERSION
 # ----------------------
 def verify_user_login(username, password_attempt):
     query = "SELECT password_hash FROM user WHERE username = %s"
     result = run_read_single(query, (username,))
+    
+    print(f"🔍 Debug: username = '{username}'")
+    print(f"🔍 Debug: result = {result}")
+    print(f"🔍 Debug: result type = {type(result)}")
+    
     if result:
-        stored_hash = result
-        if bcrypt.checkpw(password_attempt.encode('utf-8'), stored_hash.encode('utf-8')):
-            return True  # Successful login
-    return False
+        # Extract the password hash from the tuple
+        if isinstance(result, tuple):
+            stored_hash = result[0]  # Get first element from tuple
+        else:
+            stored_hash = result
+            
+        print(f"🔍 Debug: stored_hash = '{stored_hash}'")
+        print(f"🔍 Debug: stored_hash type = {type(stored_hash)}")
+        
+        # Make sure stored_hash is a string
+        if stored_hash:
+            try:
+                if bcrypt.checkpw(password_attempt.encode('utf-8'), stored_hash.encode('utf-8')):
+                    print("✅ Password verification successful!")
+                    return True
+                else:
+                    print("❌ Password verification failed - wrong password")
+                    return False
+            except Exception as e:
+                print(f"❌ Bcrypt error: {e}")
+                return False
+        else:
+            print("❌ No stored hash found")
+            return False
+    else:
+        print("❌ User not found in database")
+        return False
 
 
 
@@ -116,7 +144,7 @@ def verify_user_login(username, password_attempt):
 # CREATE PROFILE
 # ----------------------
 def create_profile(name, username, profile_picture_url, bio):
-    try:    
+    try:
         query = "INSERT INTO profile (name, username, profile_picture_url, bio) VALUES (%s, %s, %s, %s)"
         run_cud_query(query, (name, username, profile_picture_url, bio))
         return True
@@ -180,7 +208,7 @@ def update_profile(username, new_username=None, name=None, profile_picture_url=N
 # DELETE
 # ----------------------
 
-#DELETE FROM USER TO DELETE THE PROFILE 
+#DELETE FROM USER TO DELETE THE PROFILE
 #user and profile are tied together
 
 

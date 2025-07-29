@@ -8,20 +8,20 @@ from dotenv import load_dotenv, dotenv_values
 
 
 #deal with login credentials
-#load_dotenv("db.env")      #old test sql database
-load_dotenv("googleCloudSQLDB.env")
+load_dotenv("db.env")      #old test sql database
+#load_dotenv("googleCloudSQLDB.env")
 
 
 def get_connection():
     return mysql.connector.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASS"),
+        password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME"),
-        port=os.getenv("DB_PORT"),
-        ssl_ca=os.getenv("ssl_ca"),
-        ssl_cert=os.getenv("ssl_cert"),
-        ssl_key=os.getenv("ssl_key")
+        port=os.getenv("DB_PORT")
+#        ssl_ca=os.getenv("ssl_ca"),
+#        ssl_cert=os.getenv("ssl_cert"),
+#        ssl_key=os.getenv("ssl_key")
 )
 
 #runs queries for creation, updating, and deleting operations.
