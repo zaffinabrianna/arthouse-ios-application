@@ -99,7 +99,7 @@ def verify_user_login(username, password_attempt):
     query = "SELECT password_hash FROM user WHERE username = %s"
     result = run_read_single(query, (username,))
     if result:
-        stored_hash = result[0]  # ← FIX: Get the first element from the tuple
+        stored_hash = result
         if bcrypt.checkpw(password_attempt.encode('utf-8'), stored_hash.encode('utf-8')):
             return True  # Successful login
     return False
@@ -283,28 +283,31 @@ def unfollow(follower_username, followee_username):
 
 ##############################################
 
-# #test users
+# # #test users
 # create_user("Joe1", "soup@borscht.com", "jojoPart4")   #must have existing user
 # create_user("Artismo", "Artismo@arthouse.com", "SuperArtisticPassword")
 # create_user("MichèleMouton", "M-Mouton@gmail.com", "queen_of_rally")
 # create_user("dog", "dog@dog.dog", "dog")
+# create_user("Jolyne", "jojo@jojo.joe", "joe")
 
 # #test profiles
 # create_profile("JoeDaMAN", "Joe1", "URL HERE", "sql injection")
 # create_profile("Art-Lover-102", "Artismo", "URL HERE", "I love art!")
 # create_profile("Rally-God-123", "MichèleMouton", "URL HERE", "Michèle Hélène Raymonde Mouton (born 23 June 1951) is a French former rally driver. Competing in the World Rally Championship for the Audi factory team, she took four victories and finished runner-up in the drivers' world championship in 1982.")
 # create_profile("dog", "dog", "dog pic here", "dog")
+#create_profile("Jojo", "Jolyne", "URL", "Jojo Reference Here")
 
-#create_user("Jolyne", "jojo@jojo.joe", "joe")
-#update_user("Jolyne", new_username="Jojo", password="soup")
-#create_profile("Jolyne", "Jojo", "URL", "Jojo Reference Here")
-#print(get_profile_by_username("Jojo"))
-#print(get_profile_by_username("dog"))
-#follow("Jojo", "dog")
+# update_user("Jolyne", new_username="Jojo", password="soup")
+# print(get_profile_by_username("Jojo"))
+# print(get_profile_by_username("dog"))
+# follow("Artismo", "MichèleMouton")
+# follow("Artismo", "dog")
+# follow("Artismo", "Joe1")
+#follow("Jolyne", "Artismo")
 #follow("dog", "Artismo")
-#print(view_all_relationships())
-#delete_user("Jojo")
-#print(view_all_relationships())
+# print(get_all_users())
+# delete_user("Jojo")
+# print(view_all_relationships())
 
 
 #TEST profile
