@@ -5,40 +5,48 @@
 //  Created by Roberto Chavez on 7/25/25.
 //
 
-
 import SwiftUI
 
 struct NotificationsView: View {
     var body: some View {
-        NavigationView {
-            VStack {
-                Text("Notifications")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding()
-                
-                Spacer()
-                
-                // Placeholder content
-                VStack(spacing: 20) {
-                    Image(systemName: "bell.circle")
-                        .font(.system(size: 60))
-                        .foregroundColor(.gray.opacity(0.5))
+        ZStack {
+            Color(.white).edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 0) {
+                // Header - matches ExploreView exactly
+                HStack {
+                    Text("Notifications")
+                        .font(.system(size: 23, weight: .semibold))
+                        .foregroundColor(.black)
                     
-                    Text("No notifications yet")
-                        .font(.headline)
-                        .foregroundColor(.gray)
-                    
-                    Text("When you get notifications, they'll appear here")
-                        .font(.body)
-                        .foregroundColor(.gray.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    Spacer()
                 }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
                 
-                Spacer()
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Centered content - matches ExploreView structure
+                        VStack(spacing: 16) {
+                            Image(systemName: "bell.circle")
+                                .font(.system(size: 50))
+                                .foregroundColor(.gray.opacity(0.5))
+                            Text("No notifications yet")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                            Text("When you get notifications, they'll appear here")
+                                .font(.subheadline)
+                                .foregroundColor(.gray.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                        }
+                        .padding(.top, 100)
+                        
+                        Spacer(minLength: 120)
+                    }
+                    .padding(.top, -10)
+                }
             }
-            .navigationBarHidden(true)
         }
     }
 }
