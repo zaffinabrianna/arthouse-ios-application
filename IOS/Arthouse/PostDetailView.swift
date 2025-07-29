@@ -16,6 +16,8 @@ struct Comment: Identifiable {
 
 struct PostDetailView: View {
     let post: BlogPost
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var authVM: AuthViewModel
 
     @State private var comments: [Comment] = [
         .init(id: 1, username: "user123",      content: "Text text text text"),
@@ -26,16 +28,28 @@ struct PostDetailView: View {
     @State private var isFollowing = false
     @State private var isLiked     = false
     @State private var commentText = ""
+    @State private var showDeleteAlert = false
+    @State private var isDeleting = false
+    
+    // Check if this is the current user's post
+    var isOwnPost: Bool {
+        let result = post.authorHandle == "@\(authVM.currentUser?.username ?? "")"
+        print("🔍 Debug: post.authorHandle = '\(post.authorHandle)'")
+        print("🔍 Debug: current user = '@\(authVM.currentUser?.username ?? "")'")
+        print("🔍 Debug: isOwnPost = \(result)")
+        print("🔍 Debug: postId = \(post.postId)")
+        return result
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.white.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top bar
+                // Top bar with back button and delete option
                 HStack {
                     Button {
-                        // Add navigation dismiss logic here if needed
+                        dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 20))
@@ -43,10 +57,27 @@ struct PostDetailView: View {
                             .background(Color.blue.opacity(0.1))
                             .clipShape(Circle())
                     }
+                    
                     Spacer()
+                    
+                    // Delete button (only show for own posts)
+                    if isOwnPost {
+                        Button {
+                            showDeleteAlert = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 18))
+                                .foregroundColor(.red)
+                                .padding(12)
+                                .background(Color.red.opacity(0.1))
+                                .clipShape(Circle())
+                        }
+                        .disabled(isDeleting)
+                    }
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 10)
+                .padding(.top, 20)
+                .padding(.bottom, 10)
                 .background(Color.white)
 
                 // Post card
@@ -67,29 +98,41 @@ struct PostDetailView: View {
 
                         Spacer()
 
-                        Button {
-                            isFollowing.toggle()
-                        } label: {
-                            Text(isFollowing ? "Following" : "Follow")
-                                .font(.system(size: 14, weight: .semibold))
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 14)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(16)
+                        // Only show follow button if it's not your own post
+                        if !isOwnPost {
+                            Button {
+                                isFollowing.toggle()
+                            } label: {
+                                Text(isFollowing ? "Following" : "Follow")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 14)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(16)
+                            }
                         }
                     }
                     .padding(.horizontal)
 
-                    // Handle missing image gracefully
+                    // Display real images or placeholder - FIXED ASPECT RATIO
                     Group {
-                        if let uiImage = UIImage(named: post.imageName) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 260)
-                                .clipped()
-                                .cornerRadius(20)
+                        if !post.imageName.isEmpty && post.imageName != "placeholder_image" {
+                            // Real image from URL with proper aspect ratio
+                            AsyncImage(url: URL(string: post.imageName)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFit()  // Changed from scaledToFill to scaledToFit
+                            } placeholder: {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .overlay(
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle())
+                                    )
+                            }
+                            .frame(maxHeight: 300)  // Changed from fixed height to maxHeight
+                            .cornerRadius(20)
                         } else {
                             // Fallback placeholder
                             Rectangle()
@@ -109,6 +152,15 @@ struct PostDetailView: View {
                         }
                     }
                     .padding(.horizontal)
+
+                    // Display caption
+                    if !post.caption.isEmpty {
+                        Text(post.caption)
+                            .font(.system(size: 16))
+                            .foregroundColor(.black)
+                            .padding(.horizontal)
+                            .padding(.bottom, 8)
+                    }
 
                     HStack(spacing: 6) {
                         Button {
@@ -194,33 +246,78 @@ struct PostDetailView: View {
                 .padding(.vertical, 6)
                 .background(Color.white)
 
-                // Custom tab bar shape - temporary placeholder
-                Rectangle()
-                    .fill(Color.blue.opacity(1))
+                // Bottom spacing for real tab bar
+                Color.clear
                     .frame(height: 90)
-                    .cornerRadius(20)
-                    .padding([.horizontal], -10)
-                    .shadow(radius: 4)
             }
             .ignoresSafeArea(edges: .bottom)
         }
         .navigationBarHidden(true)
+        .alert("Delete Post", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                deletePost()
+            }
+        } message: {
+            Text("Are you sure you want to delete this post? This action cannot be undone.")
+        }
     }
-}
-
-// MARK: – Preview
-struct PostDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        PostDetailView(
-            post: BlogPost(
-                id: UUID(),
-                authorName: "Demo User",
-                authorHandle: "@demo",
-                imageName: "sunset_photo",
-                likeCount: 122,
-                caption: "Demo caption for preview"
-
-            )
-        )
+    
+    func deletePost() {
+        guard let currentUser = authVM.currentUser else { return }
+        
+        isDeleting = true
+        
+        // Use REAL post ID from database
+        let postId = post.postId
+        
+        guard let url = URL(string: "http://localhost:5001/api/posts/\(postId)") else {
+            isDeleting = false
+            return
+        }
+        
+        let deleteData = ["username": currentUser.username]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: deleteData)
+        } catch {
+            print("Failed to encode delete data")
+            isDeleting = false
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isDeleting = false
+                
+                if let error = error {
+                    print("❌ Post deletion failed: \(error)")
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("❌ Post deletion failed: Invalid response")
+                    return
+                }
+                
+                if httpResponse.statusCode == 200 {
+                    print("✅ Post deleted successfully")
+                    // Return to previous screen
+                    self.dismiss()
+                } else {
+                    if let data = data,
+                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let message = json["error"] as? String {
+                        print("❌ Post deletion failed: \(message)")
+                    } else {
+                        print("❌ Post deletion failed: HTTP \(httpResponse.statusCode)")
+                    }
+                }
+            }
+        }.resume()
     }
 }
