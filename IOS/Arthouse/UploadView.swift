@@ -6,221 +6,174 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct UploadView: View {
-    @EnvironmentObject var authVM: AuthViewModel
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var authVM: AuthViewModel
+    
     @State private var caption = ""
-    @State private var selectedMediaType: MediaType = .photo
+    @State private var selectedMediaType = "Photo"
     @State private var isPosting = false
+    @State private var selectedImage: UIImage?
     @State private var showingImagePicker = false
     @State private var showingCamera = false
-    @State private var selectedImage: UIImage?
     
-    enum MediaType: String, CaseIterable {
-        case photo = "Photo"
-        case video = "Video"
-        case audio = "Audio Files"
-        
-        var icon: String {
-            switch self {
-            case .photo: return "camera.fill"
-            case .video: return "video.fill"
-            case .audio: return "waveform"
-            }
-        }
-    }
+    let mediaTypes = ["Photo", "Video", "Audio"]
     
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .foregroundColor(.blue)
+                
+                Spacer()
+                
+                Button("Post") {
+                    postContent()
+                }
+                .foregroundColor(.blue)
+                .fontWeight(.semibold)
+                .disabled(caption.isEmpty || isPosting)
+                .opacity((caption.isEmpty || isPosting) ? 0.5 : 1.0)
+                
+                if isPosting {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                        .padding(.leading, 8)
+                }
+            }
+            .padding()
+            .background(Color(red: 173/255, green: 198/255, blue: 255/255))
             
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .foregroundColor(.white)
-                    
-                    Spacer()
-                    
+            // Media Type Tabs
+            HStack(spacing: 0) {
+                ForEach(mediaTypes, id: \.self) { type in
                     Button(action: {
-                        postContent()
+                        selectedMediaType = type
                     }) {
-                        if isPosting {
-                            Text("Posting...")
-                                .fontWeight(.semibold)
-                        } else {
-                            Text("Post")
-                                .fontWeight(.semibold)
+                        VStack(spacing: 4) {
+                            Image(systemName: iconForMediaType(type))
+                                .font(.system(size: 20))
+                            Text(type)
+                                .font(.system(size: 12, weight: .medium))
                         }
+                        .foregroundColor(selectedMediaType == type ? .blue : .gray)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                     }
-                    .disabled(isPosting || caption.isEmpty)
-                    .foregroundColor(.white)
+                }
+            }
+            .background(Color.black.opacity(0.05))
+            
+            // Main Content Area
+            ZStack {
+                Color.black.edgesIgnoringSafeArea(.all)
+                
+                if let selectedImage = selectedImage {
+                    // Show selected image
+                    VStack(spacing: 16) {
+                        Image(uiImage: selectedImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 300)
+                            .cornerRadius(12)
+                        
+                        Button("Change Photo") {
+                            showingImagePicker = true
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                    }
+                } else {
+                    // Camera interface with controls at bottom
+                    VStack {
+                        Spacer() // Push everything to bottom
+                        
+                        // Camera controls at bottom
+                        HStack(spacing: 40) {
+                            // Gallery button
+                            Button(action: {
+                                showingImagePicker = true
+                            }) {
+                                Image(systemName: "photo.on.rectangle")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.white)
+                            }
+                            
+                            // Capture button
+                            Button(action: {
+                                if selectedMediaType == "Photo" {
+                                    showingCamera = true
+                                }
+                            }) {
+                                Circle()
+                                    .fill(selectedMediaType == "Photo" ? Color.white : Color.red)
+                                    .frame(width: 70, height: 70)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 3)
+                                            .frame(width: 80, height: 80)
+                                    )
+                            }
+                            
+                            // Switch camera button
+                            Button(action: {
+                                // Camera switch functionality
+                            }) {
+                                Image(systemName: "camera.rotate")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .padding(.bottom, 50) // Add bottom padding
+                    }
+                }
+            }
+            
+            // Caption Input (only show if image is selected)
+            if selectedImage != nil {
+                VStack(spacing: 8) {
+                    TextEditor(text: $caption)
+                        .frame(minHeight: 100)
+                        .padding(8)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    
+                    HStack {
+                        Text("Add a caption...")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                        Spacer()
+                        Text("\(300 - caption.count)")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                    }
                 }
                 .padding()
-                .background(Color(red: 173/255, green: 198/255, blue: 255/255))
-                
-                // Media type tabs
-                HStack(spacing: 0) {
-                    ForEach(MediaType.allCases, id: \.self) { mediaType in
-                        Button(action: {
-                            selectedMediaType = mediaType
-                        }) {
-                            VStack(spacing: 4) {
-                                Image(systemName: mediaType.icon)
-                                    .font(.system(size: 18))
-                                Text(mediaType.rawValue)
-                                    .font(.caption)
-                            }
-                            .foregroundColor(selectedMediaType == mediaType ? Color(red: 173/255, green: 198/255, blue: 255/255) : .white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                        }
-                    }
-                }
-                .background(Color.black.opacity(0.8))
-                
-                // Main camera/preview area
-                GeometryReader { geometry in
-                    VStack(spacing: 0) {
-                        // Camera preview area
-                        ZStack {
-                            if let selectedImage = selectedImage {
-                                Image(uiImage: selectedImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: geometry.size.width, height: geometry.size.width)
-                                    .clipped()
-                            } else {
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: geometry.size.width, height: geometry.size.width)
-                                    .overlay(
-                                        VStack(spacing: 16) {
-                                            Image(systemName: selectedMediaType.icon)
-                                                .font(.system(size: 50))
-                                                .foregroundColor(.white.opacity(0.7))
-                                            
-                                            Text("Tap to capture \(selectedMediaType.rawValue.lowercased())")
-                                                .foregroundColor(.white.opacity(0.7))
-                                                .font(.headline)
-                                        }
-                                    )
-                                    .onTapGesture {
-                                        if selectedMediaType == .photo {
-                                            showingCamera = true
-                                        }
-                                    }
-                            }
-                            
-                            // Camera controls overlay
-                            if selectedImage == nil {
-                                VStack {
-                                    Spacer()
-                                    
-                                    HStack {
-                                        Button(action: {
-                                            showingImagePicker = true
-                                        }) {
-                                            Image(systemName: "photo.on.rectangle")
-                                                .font(.system(size: 24))
-                                                .foregroundColor(.white)
-                                                .frame(width: 50, height: 50)
-                                                .background(Color.black.opacity(0.6))
-                                                .clipShape(Circle())
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Button(action: {
-                                            if selectedMediaType == .photo {
-                                                showingCamera = true
-                                            } else if selectedMediaType == .video {
-                                                print("Start video recording")
-                                            } else if selectedMediaType == .audio {
-                                                print("Start audio recording")
-                                            }
-                                        }) {
-                                            ZStack {
-                                                Circle()
-                                                    .fill(Color.white)
-                                                    .frame(width: 70, height: 70)
-                                                
-                                                Circle()
-                                                    .fill(selectedMediaType == .video ? Color.red : Color.white)
-                                                    .frame(width: 60, height: 60)
-                                                    .overlay(
-                                                        Circle()
-                                                            .stroke(Color.black, lineWidth: 2)
-                                                    )
-                                                
-                                                if selectedMediaType == .audio {
-                                                    Image(systemName: "mic.fill")
-                                                        .foregroundColor(.black)
-                                                        .font(.system(size: 20))
-                                                }
-                                            }
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Button(action: {
-                                            print("Switch camera")
-                                        }) {
-                                            Image(systemName: "arrow.triangle.2.circlepath.camera")
-                                                .font(.system(size: 24))
-                                                .foregroundColor(.white)
-                                                .frame(width: 50, height: 50)
-                                                .background(Color.black.opacity(0.6))
-                                                .clipShape(Circle())
-                                        }
-                                    }
-                                    .padding(.horizontal, 30)
-                                    .padding(.bottom, 30)
-                                }
-                            }
-                        }
-                        
-                        Spacer()
-                    }
-                }
-                
-                // Description area (only show if image is selected)
-                if selectedImage != nil {
-                    HStack(alignment: .top) {
-                        Circle()
-                            .fill(Color.gray.opacity(0.4))
-                            .frame(width: 40, height: 40)
-                            .overlay(Image(systemName: "person.fill").foregroundColor(.white))
-                        
-                        ZStack(alignment: .topLeading) {
-                            if caption.isEmpty {
-                                Text("Add a description . . .")
-                                    .foregroundColor(.gray)
-                                    .padding(8)
-                            }
-                            
-                            TextEditor(text: $caption)
-                                .padding(8)
-                                .frame(height: 80)
-                                .background(Color.white)
-                                .cornerRadius(8)
-                                .opacity(0.95)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 12)
-                    .padding(.bottom, 20)
-                }
+                .background(Color.white)
             }
         }
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(selectedImage: $selectedImage)
         }
-        .fullScreenCover(isPresented: $showingCamera) {
-            CameraView(selectedImage: $selectedImage)
+        .sheet(isPresented: $showingCamera) {
+            CameraPicker(selectedImage: $selectedImage)
+        }
+    }
+    
+    func iconForMediaType(_ type: String) -> String {
+        switch type {
+        case "Photo": return "camera"
+        case "Video": return "video"
+        case "Audio": return "mic"
+        default: return "camera"
         }
     }
     
@@ -230,12 +183,19 @@ struct UploadView: View {
             return
         }
         
-        guard let username = authVM.currentUser?.username else {
-            print("User not logged in")
+        guard let currentUser = authVM.currentUser else {
+            print("No user logged in")
             return
         }
         
         isPosting = true
+        
+        // Convert image to base64 if available
+        var imageBase64: String? = nil
+        if let image = selectedImage,
+           let imageData = image.jpegData(compressionQuality: 0.8) {
+            imageBase64 = imageData.base64EncodedString()
+        }
         
         guard let url = URL(string: "http://localhost:5001/api/posts") else {
             print("Invalid URL")
@@ -243,11 +203,15 @@ struct UploadView: View {
             return
         }
         
-        let postData = [
-            "username": username,
+        var postData: [String: Any] = [
+            "username": currentUser.username,
             "caption": caption,
-            "media_type": selectedMediaType.rawValue
+            "media_type": selectedMediaType
         ]
+        
+        if let imageBase64 = imageBase64 {
+            postData["image_data"] = imageBase64
+        }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -301,7 +265,6 @@ struct ImagePicker: UIViewControllerRepresentable {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
         picker.sourceType = .photoLibrary
-        picker.allowsEditing = true
         return picker
     }
     
@@ -319,7 +282,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
+            if let image = info[.originalImage] as? UIImage {
                 parent.selectedImage = image
             }
             parent.presentationMode.wrappedValue.dismiss()
@@ -331,8 +294,8 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 }
 
-// Camera View
-struct CameraView: UIViewControllerRepresentable {
+// Camera Picker
+struct CameraPicker: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
     @Environment(\.presentationMode) var presentationMode
     
@@ -340,7 +303,6 @@ struct CameraView: UIViewControllerRepresentable {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
         picker.sourceType = .camera
-        picker.allowsEditing = true
         return picker
     }
     
@@ -351,14 +313,14 @@ struct CameraView: UIViewControllerRepresentable {
     }
     
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: CameraView
+        let parent: CameraPicker
         
-        init(_ parent: CameraView) {
+        init(_ parent: CameraPicker) {
             self.parent = parent
         }
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
+            if let image = info[.originalImage] as? UIImage {
                 parent.selectedImage = image
             }
             parent.presentationMode.wrappedValue.dismiss()
@@ -368,8 +330,4 @@ struct CameraView: UIViewControllerRepresentable {
             parent.presentationMode.wrappedValue.dismiss()
         }
     }
-}
-
-#Preview {
-    UploadView()
 }

@@ -1,11 +1,39 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import ArthouseDBSQLComands_USER as user_db
-from queryHelper import run_cud_query, run_read_multiple
-from MediaManager import get_signed_media_urls_by_post_id
+from queryHelper import run_cud_query, run_read_multiple, run_read_single
+import os
+import uuid
+import base64
 
 app = Flask(__name__)
 CORS(app)
+
+def upload_image_locally(image_data, filename):
+    """Save base64 image locally for testing"""
+    try:
+        # Create uploads directory if it doesn't exist
+        uploads_dir = "uploads"
+        if not os.path.exists(uploads_dir):
+            os.makedirs(uploads_dir)
+        
+        # Decode base64 image
+        image_bytes = base64.b64decode(image_data)
+        
+        # Create unique filename
+        unique_filename = f"{uuid.uuid4()}_{filename}"
+        file_path = os.path.join(uploads_dir, unique_filename)
+        
+        # Save to local file
+        with open(file_path, 'wb') as f:
+            f.write(image_bytes)
+        
+        # Return local URL (for testing)
+        return f"http://localhost:5001/uploads/{unique_filename}"
+        
+    except Exception as e:
+        print(f"Error saving image locally: {e}")
+        return None
 
 @app.route('/')
 def home():
@@ -31,7 +59,7 @@ def register():
                 }
             }
         else:
-            user_db.delete_user(username)  # cleanup if profile fails
+            user_db.delete_user(username)
             return {"error": "Profile creation failed"}, 400
     else:
         return {"error": "User creation failed"}, 400
@@ -95,17 +123,27 @@ def create_post():
         username = data.get('username')
         caption = data.get('caption', '')
         media_type = data.get('media_type', 'photo')
+        image_data = data.get('image_data')  # Base64 encoded image
         
-        # Actually save to database
-        query = "INSERT INTO post (username, post_description, is_private, like_count, comment_count) VALUES (%s, %s, %s, %s, %s)"
-        post_id = run_cud_query(query, (username, caption, False, 0, 0))
+        image_url = None
+        if image_data:
+            # Use local storage for now
+            filename = f"{username}_{uuid.uuid4()}.jpg"
+            image_url = upload_image_locally(image_data, filename)
+            
+            if not image_url:
+                return {"error": "Failed to save image"}, 400
+        
+        # Save post to database with image URL
+        query = "INSERT INTO post (username, post_description, image_url, is_private, like_count, comment_count) VALUES (%s, %s, %s, %s, %s, %s)"
+        post_id = run_cud_query(query, (username, caption, image_url, False, 0, 0))
         
         if post_id:
             print(f"✅ Post saved to database:")
             print(f"   Post ID: {post_id}")
             print(f"   User: {username}")
             print(f"   Caption: {caption}")
-            print(f"   Media Type: {media_type}")
+            print(f"   Image URL: {image_url}")
             
             return {
                 "success": True,
@@ -114,6 +152,7 @@ def create_post():
                     "post_id": post_id,
                     "username": username,
                     "caption": caption,
+                    "image_url": image_url,
                     "media_type": media_type
                 }
             }
@@ -127,18 +166,20 @@ def create_post():
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
     try:
-        # Get posts from database
-        query = "SELECT username, post_description, like_count, created_at FROM post ORDER BY created_at DESC LIMIT 20"
+        # Get posts from database including image URLs
+        query = "SELECT post_id, username, post_description, image_url, like_count, created_at FROM post ORDER BY created_at DESC LIMIT 20"
         posts_data = run_read_multiple(query)
         
         if posts_data:
             posts = []
             for post_row in posts_data:
                 posts.append({
-                    "username": post_row[0],
-                    "caption": post_row[1] or "",
-                    "like_count": post_row[2] or 0,
-                    "created_at": str(post_row[3]) if post_row[3] else ""
+                    "post_id": post_row[0],
+                    "username": post_row[1],
+                    "caption": post_row[2] or "",
+                    "image_url": post_row[3] or "",
+                    "like_count": post_row[4] or 0,
+                    "created_at": str(post_row[5]) if post_row[5] else ""
                 })
             
             print(f"📊 Returning {len(posts)} posts from database")
@@ -156,62 +197,49 @@ def get_posts():
         print(f"Error getting posts: {e}")
         return {"error": f"Failed to get posts: {str(e)}"}, 500
 
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    try:
+        data = request.json
+        username = data.get('username')
+        
+        if not username:
+            return {"error": "Username required"}, 400
+        
+        # First, verify the post belongs to the user
+        verify_query = "SELECT username FROM post WHERE post_id = %s"
+        result = run_read_single(verify_query, (post_id,))
+        
+        if not result:
+            return {"error": "Post not found"}, 404
+            
+        post_owner = result[0]
+        if post_owner != username:
+            return {"error": "Not authorized to delete this post"}, 403
+        
+        # Delete the post
+        delete_query = "DELETE FROM post WHERE post_id = %s"
+        run_cud_query(delete_query, (post_id,))
+        
+        print(f"✅ Post deleted:")
+        print(f"   Post ID: {post_id}")
+        print(f"   User: {username}")
+        
+        return {
+            "success": True,
+            "message": "Post deleted successfully",
+            "post_id": post_id
+        }
+        
+    except Exception as e:
+        print(f"Error deleting post: {e}")
+        return {"error": f"Failed to delete post: {str(e)}"}, 500
+
+# Route to serve uploaded images
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory('uploads', filename)
+
 if __name__ == '__main__':
     print("Starting Arthouse API...")
     app.run(debug=True, host='0.0.0.0', port=5001)
-
-
-# RETRIEVES URLS USING THE PYTHON BACKEND
-@app.route('/api/media-urls/<int:post_id>', methods=['GET'])
-def get_media_urls(post_id):
-    try:
-        urls = get_signed_media_urls_by_post_id(post_id)
-        if urls:
-            return jsonify({
-                "success": True,
-                "post_id": post_id,
-                "urls": urls
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "error": "No media found for this post"
-            }), 404
-    except Exception as e:
-        print(f"❌ Error fetching media URLs: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
-    
-# Fetch url for uploading
-@app.route('/api/media/upload-url', methods=['POST'])
-def get_upload_url():
-    data = request.json
-    filename = data.get('filename')
-    media_type = data.get('media_type')
-    # Validate input here...
-
-    try:
-        signed_url = agci.generate_upload_signed_url(bucket_name, filename, media_type)
-        return jsonify({"success": True, "upload_url": signed_url}), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-    
-
-
-@app.route('/api/media/upload', methods=['POST'])
-def upload_media():
-    data = request.json
-    post_id = data.get('post_id')
-    file_path = data.get('file_path')  # This should be a path accessible to your backend (or change design to accept file bytes or upload URL)
-    media_type = data.get('media_type')
-    
-    if not all([post_id, file_path, media_type]):
-        return jsonify({"success": False, "error": "Missing parameters"}), 400
-    
-    success = create_media(post_id, file_path, media_type)
-    if success:
-        return jsonify({"success": True, "message": "Media uploaded and recorded in DB"})
-    else:
-        return jsonify({"success": False, "error": "Failed to upload media"}), 500

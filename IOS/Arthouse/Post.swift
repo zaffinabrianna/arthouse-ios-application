@@ -9,9 +9,10 @@ import Foundation
 
 struct BlogPost: Identifiable, Hashable {
     let id: UUID
-    let authorName: String     // e.g. "Name"
-    let authorHandle: String   // e.g. "@Username"
-    let imageName: String      // must match an asset in your catalog
+    let postId: Int           // NEW: Database post ID for deletion
+    let authorName: String    // e.g. "Name"
+    let authorHandle: String  // e.g. "@Username"
+    let imageName: String     // must match an asset in your catalog
     let likeCount: Int
-    let caption: String        // NEW: The post caption/description
+    let caption: String       // The post caption/description
 }

@@ -173,6 +173,9 @@ struct SignUpView: View {
                         Text(placeholder)
                             .foregroundColor(Color.gray.opacity(0.6))
                     )
+                    .textContentType(.none)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
                 } else {
                     TextField("", text: text, prompt:
                         Text(placeholder)
@@ -181,6 +184,7 @@ struct SignUpView: View {
                     .keyboardType(keyboard)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
+                    .textContentType(username.isEmpty ? .none : .username)
                 }
             }
             .padding(.horizontal, 12)
@@ -207,7 +211,7 @@ struct SignUpView: View {
         }
 
         if password != confirmPassword {
-            errorMessage = "Passwords don’t match"
+            errorMessage = "Passwords don't match"
             return
         }
 
