@@ -12,11 +12,7 @@ struct BlogPost: Identifiable, Hashable {
     let postId: Int           // NEW: Database post ID for deletion
     let authorName: String    // e.g. "Name"
     let authorHandle: String  // e.g. "@Username"
-<<<<<<< HEAD
-    let imageName: String     // must match an asset in your catalog
-=======
-    let imageName: String     
->>>>>>> main
+    let imageName: String     // Image URL or asset name
     let likeCount: Int
     let caption: String       // The post caption/description
 }
