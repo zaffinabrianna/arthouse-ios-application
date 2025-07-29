@@ -31,3 +31,5 @@ IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/client-key.pem
 IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/server-ca.pem
 IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/googleCloudSQLDB.env
 IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/db.env
+google_credentials.json
+*.json
