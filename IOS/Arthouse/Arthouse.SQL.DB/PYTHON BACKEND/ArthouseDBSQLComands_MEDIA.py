@@ -110,7 +110,7 @@ def get_media_by_post(post_id):
         return run_read_multiple(query, (post_id,))
     except Exception as e:
         print(f"Could not get media: {e}")
-        return None
+        return []
 
 def get_media_by_id(media_id):
     try:

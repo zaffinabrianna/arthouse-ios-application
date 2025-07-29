@@ -1,0 +1,32 @@
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+build/
+DerivedData/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# CocoaPods
+Pods/
+*.podspec
+
+# macOS
+.DS_Store
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+#PYTHON BACKEND API STUFF
+IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/caramel-feat-466118-i4-f6cde017fca1.json
+IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/client-cert.pem
+IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/client-key.pem
+IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/server-ca.pem
+IOS/Arthouse/Arthouse.SQL.DB/PYTHON BACKEND/googleCloudSQLDB.env

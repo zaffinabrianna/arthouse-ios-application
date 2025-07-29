@@ -1,12 +1,11 @@
 #perform CRUD operations on post related items in the database (create, read, update, delete)
 
 from queryHelper import run_cud_query, run_read_multiple, run_read_single
-from ArthouseDBSQLComands_MEDIA import create_audio, delete_media, get_media_by_post
+from ArthouseDBSQLComands_MEDIA import create_audio, delete_media, get_media_by_post, create_medias
 
 ################################################################################################
 # POST
 ################################################################################################
-
 
 # ----------------------
 # CREATE        POST
@@ -33,6 +32,19 @@ def create_post(username, audio_id=None, post_description="", hashtags=None):
     except Exception as e:
         print(f"Failed to create post for '{username}': {e}")
         return None
+
+
+def make_post_with_media(username, audio_id=None, post_description="", hashtags=None, media_list={}):
+    #media_list must be a dictionary {"file_path" : "media type"...}
+    try:
+        returned_post_id = create_post(username, audio_id, post_description, hashtags)
+        print("PostID: ", returned_post_id)
+        if returned_post_id != None:
+            create_medias(returned_post_id, media_list)
+    except Exception as e:
+        print(f"Failed to create post and upload media [make_post_with_media()]: {e}")
+        return False
+
 
 
 # ----------------------
@@ -67,20 +79,6 @@ def get_user_posts_paginated(username, limit=5, offset=0):
     except Exception as e:
         print(f"Failed to obtain posts for \"{username}\" : {e}")
         return None
-
-def get_post_id():
-    try:
-        query = """
-        SELECT * FROM post
-        WHERE username = %s
-        ORDER BY created_at DESC
-        LIMIT %s OFFSET %s
-        """
-        return run_read_multiple(query)
-    except Exception as e:
-        print(f"Failed to obtain post ID : {e}")
-        return None
-
 
 #probably not useful
 def get_all_posts():
@@ -128,6 +126,94 @@ def get_posts_containing_hashtags(list_of_hashtags):
             print(tag)     
         print(" : {e}")
         return None
+
+
+
+
+   #################
+   # ALGOS
+   #################
+
+
+# Home: you, your follower’s, and who you follow's post
+# Fetch posts with relations to you
+def home_feed_algo(username, offset=0):
+    try:
+        query = """
+        SELECT p.*, m.media_id, m.file_name, m.extension_name, m.media_type
+        FROM post p
+        LEFT JOIN media m ON p.post_id = m.post_id
+        WHERE p.username = %s
+           OR p.username IN (
+                SELECT followee FROM follower_relationships WHERE follower = %s
+           )
+        ORDER BY p.created_at DESC
+        LIMIT 5 OFFSET %s
+        """
+        return run_read_multiple(query, (username, username, offset))
+    except Exception as e:
+        print(f"Posts failed to load [home_feed_algo()] : {e}")
+        return None
+
+
+# Search: recommended
+# 	RECOMENDED FEED ALGO Sql query =
+#      -select the posts that a user has liked 
+#      -fetch the hashtags with those posts
+#      -Calculate the top 3-5 most common hashtags among the posts
+#      -Recommend similar posts with the similar hashtags
+# NOTE: dont just recommend ONLY post with hashtags, 
+#       maybe give a higher percentage to favor posts with those hashtags
+
+def recommended_feed_algo(username):
+    try:
+        print(f"Running recommended feed for user: {username}")
+        query = """
+        WITH liked_hashtags AS (
+            SELECT h.hashtag
+            FROM user_liked_relationships ul
+            JOIN hashtag h ON ul.post_id = h.post_id
+            WHERE ul.username = %s
+        ),
+        top_hashtags AS (
+            SELECT hashtag, COUNT(*) AS freq
+            FROM liked_hashtags
+            GROUP BY hashtag
+            ORDER BY freq DESC
+            LIMIT 5
+        ),
+        hashtag_posts AS (
+            SELECT DISTINCT p.*, m.media_id, m.file_name, m.extension_name, m.media_type, 1 AS priority
+            FROM post p
+            LEFT JOIN media m ON p.post_id = m.post_id
+            JOIN hashtag h ON p.post_id = h.post_id
+            WHERE h.hashtag IN (SELECT hashtag FROM top_hashtags)
+              AND p.username != %s
+        ),
+        fallback_posts AS (
+            SELECT p.*, m.media_id, m.file_name, m.extension_name, m.media_type, 2 AS priority
+            FROM post p
+            LEFT JOIN media m ON p.post_id = m.post_id
+            WHERE p.username != %s
+              AND p.post_id NOT IN (SELECT post_id FROM hashtag_posts)
+        ),
+        combined_posts AS (
+            SELECT * FROM hashtag_posts
+            UNION ALL
+            SELECT * FROM fallback_posts
+        )
+        SELECT * FROM combined_posts
+        ORDER BY priority, created_at DESC
+        LIMIT 10
+        """
+        result = run_read_multiple(query, (username, username, username))
+        print(f"Got {len(result)} recommended posts.")
+        return result
+    except Exception as e:
+        print(f"Posts failed to load [recommended_feed_algo()] : {e}")
+        return None
+ 
+
 # ----------------------
 # UPDATE        POST
 # ----------------------
@@ -176,13 +262,16 @@ def update_post(post_id, new_audio_id=None, post_description="", hashtags=None, 
 # ----------------------
 
 def delete_post(post_id):
-    #deletes post and terminates relationship of all likes to post
+    #deletes post and everything associated with it (likes, media, etc)
     try:
         query = "DELETE FROM post WHERE post_id = %s"
         run_cud_query(query, (post_id,))
+        medias = get_media_by_post(post_id=post_id)
+        for id in medias:
+            delete_media(id)
         return True
     except Exception as e:
-        print(f"The post \"{post_id}\" failed to be unliked. Verify it exists. : {e}")
+        print(f"The post \"{post_id}\" failed to be deleted. Verify it exists. : {e}")
         return False
 
 
@@ -365,75 +454,6 @@ def get_comment_count_for_post(post_id):
         print(f"Failed to obtain comment count for \"{post_id}\" : {e}")
         return False
 
-
-
-################################################################################
-#    ALGOS
-
-
-## algo for home feed
-def get_home_feed_posts(username, limit=50):
-    query = """
-        SELECT post_id, username, post_description, like_count, comment_count, created_at
-        FROM post
-        WHERE username = %s
-           OR username IN (
-               SELECT followee
-               FROM follower_relationships
-               WHERE follower = %s
-           )
-        ORDER BY created_at DESC
-        LIMIT %s;
-    """
-    return run_read_multiple(query, (username, username, limit))
-
-
-## 
-def get_recommended_feed(username, limit=50):
-    # Step 1 & 2: Get top hashtags user liked
-    top_tags_query = """
-        SELECT h.hashtag
-        FROM hashtag h
-        JOIN user_liked_relationships ulr ON ulr.post_id = h.post_id
-        WHERE ulr.username = %s
-        GROUP BY h.hashtag
-        ORDER BY COUNT(*) DESC
-        LIMIT 5;
-    """
-    top_tags_results = run_read_multiple(top_tags_query, (username,))
-    top_tags = [row[0] for row in top_tags_results] if top_tags_results else []
-
-    if not top_tags:
-        # No liked posts or hashtags, just return recent posts
-        fallback_query = """
-            SELECT post_id, username, post_description, like_count, comment_count, created_at
-            FROM post
-            ORDER BY created_at DESC
-            LIMIT %s;
-        """
-        return run_read_multiple(fallback_query, (limit,))
-
-    # Prepare placeholders for top hashtags for SQL IN clause
-    placeholders = ','.join(['%s'] * 5)
-    hashtags_for_query = top_tags + [''] * (5 - len(top_tags))  # pad to 5 if fewer
-
-    recommended_query = f"""
-        SELECT DISTINCT p.post_id, p.username, p.post_description, p.like_count, p.comment_count, p.created_at,
-            CASE WHEN h.hashtag IS NOT NULL THEN 1 ELSE 0 END AS has_recommended_tag
-        FROM post p
-        LEFT JOIN hashtag h ON p.post_id = h.post_id AND h.hashtag IN ({placeholders})
-        ORDER BY has_recommended_tag DESC, p.created_at DESC
-        LIMIT %s;
-    """
-
-    params = hashtags_for_query + [limit]
-
-    return run_read_multiple(recommended_query, params)
-
-
-#####################################################################################
-
-
 # ----------------------
 # UPDATE 
 # ----------------------
@@ -476,8 +496,31 @@ def delete_comment(comment_id):
 ##############################################
 
 # create_post(username, audio_id=None, post_description="", hashtags=None, created_at="CURRENT_TIMESTAMP"):
+# def make_post_with_media(username, audio_id=None, post_description="", hashtags=None, media_list=[]):
 
 # create_post("dog", post_description="Pucci on pack watch.", hashtags=["packwatch"])
 # like_post("Joe1", 13)
 # create_comment("Joe1", 13, "This post sucks!")
 # unlike_post("Joe1", 13)
+# make_post_with_media("MichèleMouton", 
+#                      post_description="R.I.P. Irwindale Speedway!", 
+#                      hashtags=["cars", "racing", "photography"], 
+#                      media_list={r"C:\Users\jcngu\OneDrive\Pictures\MEMORY FOLDER\irwindaleExtravaganza\edits\smalls\sickestDrift.png" 
+#                                  : "photo"})
+# make_post_with_media("Artismo", 
+#                      post_description="The greatest in automotive excellence", 
+#                      hashtags=["photography", "cars"],
+#                      media_list={r"C:\Users\jcngu\OneDrive\Pictures\edited photos for projects\PorscheCover.png"
+#                                 : "photo"})
+# make_post_with_media("Joe1", 
+#                      post_description="New music video!", 
+#                      hashtags=["video", "music"],
+#                      media_list={r"C:\Users\jcngu\OneDrive\Documents\blue usb stuff\Advanced crap\FAA_MusicVideo_ConnorBartlett.mp4"
+#                                 : "video"})
+
+print(home_feed_algo(r"Artismo"))
+print("---------------------------------")
+print(recommended_feed_algo(r"Artismo"))
+
+
+#create_post("Artismo", post_description="ART", hashtags=["art", "photography"])
