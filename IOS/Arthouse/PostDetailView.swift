@@ -2,12 +2,12 @@
 //  PostDetailView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/9/25.
+//  Created on 7/9/25.
 //
 
 import SwiftUI
 
-// MARK: – Model for Comments
+// Comment model for the comment section
 struct Comment: Identifiable {
     let id: Int
     let username: String
@@ -31,7 +31,7 @@ struct PostDetailView: View {
     @State private var showDeleteAlert = false
     @State private var isDeleting = false
     
-    // Check if this is the current user's post
+    // Check if this post belongs to the current user
     var isOwnPost: Bool {
         let result = post.authorHandle == "@\(authVM.currentUser?.username ?? "")"
         print("🔍 Debug: post.authorHandle = '\(post.authorHandle)'")
@@ -46,7 +46,7 @@ struct PostDetailView: View {
             Color.white.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top bar with back button and delete option
+                // Header with back and delete buttons
                 HStack {
                     Button {
                         dismiss()
@@ -60,7 +60,7 @@ struct PostDetailView: View {
                     
                     Spacer()
                     
-                    // Delete button (only show for own posts)
+                    // Only show delete button if it's your post
                     if isOwnPost {
                         Button {
                             showDeleteAlert = true
@@ -80,7 +80,7 @@ struct PostDetailView: View {
                 .padding(.bottom, 10)
                 .background(Color.white)
 
-                // Post card
+                // Main post content
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 10) {
                         Image(systemName: "person.crop.circle.fill")
@@ -98,7 +98,7 @@ struct PostDetailView: View {
 
                         Spacer()
 
-                        // Only show follow button if it's not your own post
+                        // Show follow button only for other people's posts
                         if !isOwnPost {
                             Button {
                                 isFollowing.toggle()
@@ -115,14 +115,14 @@ struct PostDetailView: View {
                     }
                     .padding(.horizontal)
 
-                    // Display real images or placeholder - FIXED ASPECT RATIO
+                    // Show the post image
                     Group {
                         if !post.imageName.isEmpty && post.imageName != "placeholder_image" {
-                            // Real image from URL with proper aspect ratio
+                            // Load real image from URL
                             AsyncImage(url: URL(string: post.imageName)) { image in
                                 image
                                     .resizable()
-                                    .scaledToFit()  // Changed from scaledToFill to scaledToFit
+                                    .scaledToFit()
                             } placeholder: {
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.3))
@@ -131,10 +131,10 @@ struct PostDetailView: View {
                                             .progressViewStyle(CircularProgressViewStyle())
                                     )
                             }
-                            .frame(maxHeight: 300)  // Changed from fixed height to maxHeight
+                            .frame(maxHeight: 300)
                             .cornerRadius(20)
                         } else {
-                            // Fallback placeholder
+                            // Show placeholder when no image
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 260)
@@ -153,7 +153,7 @@ struct PostDetailView: View {
                     }
                     .padding(.horizontal)
 
-                    // Display caption
+                    // Show the caption if there is one
                     if !post.caption.isEmpty {
                         Text(post.caption)
                             .font(.system(size: 16))
@@ -162,6 +162,7 @@ struct PostDetailView: View {
                             .padding(.bottom, 8)
                     }
 
+                    // Like button and count
                     HStack(spacing: 6) {
                         Button {
                             isLiked.toggle()
@@ -181,41 +182,52 @@ struct PostDetailView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 10)
 
-                // Comment list
-                ScrollView {
-                    VStack(spacing: 0) {
-                        ForEach(comments) { comment in
-                            VStack(spacing: 6) {
-                                HStack(alignment: .top, spacing: 10) {
-                                    Circle()
-                                        .fill(Color.gray.opacity(0.4))
-                                        .frame(width: 36, height: 36)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        HStack {
-                                            Text("Name")
-                                                .font(.system(size: 15, weight: .bold))
-                                            Text("@\(comment.username)")
-                                                .foregroundColor(.gray)
-                                                .font(.system(size: 14))
+                // Comments section with scroll reader to fix scrolling bug
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(comments) { comment in
+                                VStack(spacing: 6) {
+                                    HStack(alignment: .top, spacing: 10) {
+                                        Circle()
+                                            .fill(Color.gray.opacity(0.4))
+                                            .frame(width: 36, height: 36)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            HStack {
+                                                Text("Name")
+                                                    .font(.system(size: 15, weight: .bold))
+                                                Text("@\(comment.username)")
+                                                    .foregroundColor(.gray)
+                                                    .font(.system(size: 14))
+                                            }
+                                            Text(comment.content)
+                                                .font(.system(size: 15))
                                         }
-                                        Text(comment.content)
-                                            .font(.system(size: 15))
+                                        Spacer()
                                     }
-                                    Spacer()
+                                    .padding(.vertical, 10)
+                                    Divider()
+                                        .padding(.leading, 60)
                                 }
-                                .padding(.vertical, 10)
-                                Divider()
-                                    .padding(.leading, 60)
+                                .padding(.horizontal)
+                                .id(comment.id) // Need this for scroll tracking
                             }
-                            .padding(.horizontal)
+                        }
+                        .padding(.bottom, 80)
+                    }
+                    .onChange(of: comments.count) { _ in
+                        // When new comment added, scroll to show it
+                        if let lastComment = comments.last {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                proxy.scrollTo(lastComment.id, anchor: .bottom)
+                            }
                         }
                     }
-                    .padding(.bottom, 80)
                 }
             }
 
-            // Reply bar & tab bar
+            // Comment input and bottom area
             VStack(spacing: 0) {
                 Divider()
                 HStack(spacing: 10) {
@@ -230,12 +242,17 @@ struct PostDetailView: View {
 
                     Button {
                         guard !commentText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                        comments.append(.init(
-                            id: comments.count + 1,
+                        
+                        // Create new comment with unique ID
+                        let newComment = Comment(
+                            id: (comments.max(by: { $0.id < $1.id })?.id ?? 0) + 1,
                             username: "you",
                             content: commentText
-                        ))
+                        )
+                        
+                        comments.append(newComment)
                         commentText = ""
+                        
                     } label: {
                         Image(systemName: "paperplane.fill")
                             .foregroundColor(.blue)
@@ -246,7 +263,7 @@ struct PostDetailView: View {
                 .padding(.vertical, 6)
                 .background(Color.white)
 
-                // Bottom spacing for real tab bar
+                // Space for the tab bar
                 Color.clear
                     .frame(height: 90)
             }
@@ -263,12 +280,13 @@ struct PostDetailView: View {
         }
     }
     
+    // Handle deleting the post
     func deletePost() {
         guard let currentUser = authVM.currentUser else { return }
         
         isDeleting = true
         
-        // Use REAL post ID from database
+        // Use the real post ID from database
         let postId = post.postId
         
         guard let url = URL(string: "http://localhost:5001/api/posts/\(postId)") else {
@@ -285,7 +303,7 @@ struct PostDetailView: View {
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: deleteData)
         } catch {
-            print("Failed to encode delete data")
+            print("Couldn't package delete request")
             isDeleting = false
             return
         }
@@ -295,26 +313,26 @@ struct PostDetailView: View {
                 self.isDeleting = false
                 
                 if let error = error {
-                    print("❌ Post deletion failed: \(error)")
+                    print("❌ Delete failed: \(error)")
                     return
                 }
                 
                 guard let httpResponse = response as? HTTPURLResponse else {
-                    print("❌ Post deletion failed: Invalid response")
+                    print("❌ Delete failed: Bad response")
                     return
                 }
                 
                 if httpResponse.statusCode == 200 {
                     print("✅ Post deleted successfully")
-                    // Return to previous screen
+                    // Go back to previous screen
                     self.dismiss()
                 } else {
                     if let data = data,
                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                        let message = json["error"] as? String {
-                        print("❌ Post deletion failed: \(message)")
+                        print("❌ Delete failed: \(message)")
                     } else {
-                        print("❌ Post deletion failed: HTTP \(httpResponse.statusCode)")
+                        print("❌ Delete failed: HTTP \(httpResponse.statusCode)")
                     }
                 }
             }

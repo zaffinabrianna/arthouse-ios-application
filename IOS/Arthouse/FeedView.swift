@@ -29,6 +29,7 @@ struct FeedView: View {
                         ProgressView()
                             .padding()
                     } else if posts.isEmpty {
+                        // Empty state message
                         VStack(spacing: 16) {
                             Image(systemName: "photo.on.rectangle")
                                 .font(.system(size: 50))
@@ -42,6 +43,7 @@ struct FeedView: View {
                         }
                         .padding(.top, 100)
                     } else {
+                        // Show all the posts
                         ForEach(posts) { post in
                             PostCard(post: post)
                         }
@@ -49,12 +51,14 @@ struct FeedView: View {
                     Spacer(minLength: 120)
                 }
                 .padding(.top, -20)
+                .padding(.horizontal, 16) // Better spacing from edges
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Feed")
                         .font(.system(size: 23, weight: .semibold))
                         .foregroundColor(.black)
+
                 }
             }
             .refreshable {
@@ -65,7 +69,7 @@ struct FeedView: View {
             fetchPosts()
         }
         .onChange(of: selectedTab) { newTab in
-            if newTab == 0 { // Feed tab
+            if newTab == 0 { // Feed tab selected
                 fetchPosts()
             }
         }
@@ -82,7 +86,7 @@ struct FeedView: View {
         isLoading = true
         
         guard let url = URL(string: "http://localhost:5001/api/posts") else {
-            print("Invalid URL")
+            print("Bad URL")
             isLoading = false
             return
         }
@@ -101,12 +105,12 @@ struct FeedView: View {
                        let caption = postData["caption"] as? String,
                        let postId = postData["post_id"] as? Int {
                         
-                        // Get image URL from API response
+                        // Get the image URL from server response
                         let imageUrl = postData["image_url"] as? String ?? ""
                         
                         let post = BlogPost(
                             id: UUID(),
-                            postId: postId,  // Real database ID
+                            postId: postId,
                             authorName: username.capitalized,
                             authorHandle: "@\(username)",
                             imageName: imageUrl.isEmpty ? "placeholder_image" : imageUrl,
@@ -118,20 +122,20 @@ struct FeedView: View {
                 }
                 
                 self.posts = fetchedPosts
-                print("✅ Loaded \(fetchedPosts.count) posts in feed")
+                print("✅ Got \(fetchedPosts.count) posts for the feed")
             } else {
-                print("No posts found or invalid response")
+                print("No posts found or bad response")
                 self.posts = []
             }
         } catch {
-            print("Error fetching posts: \(error)")
+            print("Error loading posts: \(error)")
         }
         
         isLoading = false
     }
 }
 
-// MARK: - Post Card
+// Individual post card component
 struct PostCard: View {
     let post: BlogPost
     @State private var isLiked = false
@@ -144,6 +148,7 @@ struct PostCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // User info section
             HStack(spacing: 8) {
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
@@ -162,7 +167,7 @@ struct PostCard: View {
                 Spacer()
             }
             
-            // Caption display
+            // Show caption if there is one
             if !post.caption.isEmpty {
                 Text(post.caption)
                     .font(.system(size: 16))
@@ -172,9 +177,9 @@ struct PostCard: View {
             }
             
             ZStack(alignment: .bottomLeading) {
-                // Real image or placeholder
+                // Load image from URL or show placeholder
                 if !post.imageName.isEmpty && post.imageName != "placeholder_image" {
-                    // Real image from URL with proper aspect ratio
+                    // Real image from server
                     AsyncImage(url: URL(string: post.imageName)) { image in
                         image
                             .resizable()
@@ -191,7 +196,7 @@ struct PostCard: View {
                     .clipped()
                     .cornerRadius(20)
                 } else {
-                    // Placeholder
+                    // No image placeholder
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
                         .frame(height: 260)
@@ -208,6 +213,7 @@ struct PostCard: View {
                         )
                 }
                 
+                // Like button and count overlay
                 HStack(spacing: 6) {
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -235,7 +241,6 @@ struct PostCard: View {
         .background(Color.lightBlue)
         .cornerRadius(30)
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-        .padding(.horizontal, 10)
     }
 }
 

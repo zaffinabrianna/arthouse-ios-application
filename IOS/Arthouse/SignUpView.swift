@@ -2,14 +2,13 @@
 //  SignUpView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/21/25.
+//  Created on 7/21/25.
 //
 
 import SwiftUI
 
 struct SignUpView: View {
-    // MARK: – State
-    @EnvironmentObject var authViewModel: AuthViewModel  // injected view model
+    @EnvironmentObject var authViewModel: AuthViewModel
     @State private var fullName        = ""
     @State private var email           = ""
     @State private var password        = ""
@@ -19,16 +18,16 @@ struct SignUpView: View {
     @State private var errorMessage    = ""
     @Binding var showSignIn: Bool
 
-    // height of the bottom panel
+    // Height for the blue bottom section
     private let bottomPanelHeight: CGFloat = 100
 
     var body: some View {
         ZStack {
-            // 1) White background
+            // White background
             Color.white
                 .ignoresSafeArea()
 
-            // 2) Bottom curved panel behind everything
+            // Blue curved section at bottom
             VStack {
                 Spacer()
                 RoundedRectangle(cornerRadius: 32, style: .continuous)
@@ -38,9 +37,9 @@ struct SignUpView: View {
             }
             .zIndex(0)
 
-            // 3) Main content
+            // Main signup form
             VStack(spacing: 0) {
-                // Back arrow
+                // Back button
                 HStack {
                     Button { showSignIn = false } label: {
                         Image(systemName: "chevron.left")
@@ -53,7 +52,7 @@ struct SignUpView: View {
                 .padding(.top, 60)
                 .padding(.bottom, 20)
 
-                // Title & subtitle
+                // App title and signup text
                 VStack(spacing: 8) {
                     Text("ArtHouse")
                         .font(.system(size: 32, weight: .bold))
@@ -67,32 +66,32 @@ struct SignUpView: View {
                 }
                 .padding(.bottom, 30)
 
-                // Form fields
+                // All the input fields
                 VStack(spacing: 20) {
-                    field(
+                    inputField(
                         title: "Your Full Name",
                         placeholder: "your name",
                         text: $fullName
                     )
-                    field(
+                    inputField(
                         title: "Your Email",
                         placeholder: "type your email @gmail.com",
                         text: $email,
                         keyboard: .emailAddress
                     )
-                    field(
+                    inputField(
                         title: "Password",
                         placeholder: "type your password",
                         text: $password,
                         isSecure: true
                     )
-                    field(
+                    inputField(
                         title: "Confirm your Password",
                         placeholder: "retype your password",
                         text: $confirmPassword,
                         isSecure: true
                     )
-                    field(
+                    inputField(
                         title: "Username",
                         placeholder: "type your username",
                         text: $username
@@ -100,7 +99,7 @@ struct SignUpView: View {
                 }
                 .padding(.horizontal, 24)
 
-                // Error message
+                // Show any error messages
                 if !errorMessage.isEmpty {
                     Text(errorMessage)
                         .font(.system(size: 14))
@@ -108,7 +107,7 @@ struct SignUpView: View {
                         .padding(.top, 4)
                 }
 
-                // Join Now button
+                // Sign up button
                 Button(action: createAccount) {
                     HStack {
                         if isLoading {
@@ -129,7 +128,7 @@ struct SignUpView: View {
                 .padding(.horizontal, 24)
                 .disabled(isLoading)
 
-                // Already have an account?
+                // Link back to sign in
                 Button("Already have an account? Sign In") {
                     showSignIn = false
                 }
@@ -137,7 +136,7 @@ struct SignUpView: View {
                 .foregroundColor(.blue)
                 .padding(.top, 20)
 
-                // Terms text
+                // Terms and privacy text
                 Text("By clicking continue, you agree to our Terms of Service and Privacy Policy")
                     .font(.system(size: 12))
                     .foregroundColor(Color.gray.opacity(0.7))
@@ -147,15 +146,15 @@ struct SignUpView: View {
 
                 Spacer()
             }
-            // lifts content above the bottom panel
+            // Push content up above the blue bottom section
             .padding(.bottom, bottomPanelHeight)
             .zIndex(1)
         }
     }
 
-    // MARK: – Field builder
+    // Helper function to build input fields
     @ViewBuilder
-    private func field(
+    private func inputField(
         title: String,
         placeholder: String,
         text: Binding<String>,
@@ -197,9 +196,9 @@ struct SignUpView: View {
         }
     }
 
-    // MARK: – Actions
+    // Handle account creation
     private func createAccount() {
-        // basic validation
+        // Check if all fields are filled out
         if fullName.isEmpty ||
            email.isEmpty ||
            password.isEmpty ||
@@ -218,7 +217,7 @@ struct SignUpView: View {
         isLoading    = true
         errorMessage = ""
 
-        // simulate signup
+        // Call the signup function
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             authViewModel.signup(name: fullName,
                                  email: email,

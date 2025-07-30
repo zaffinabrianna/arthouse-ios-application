@@ -27,6 +27,7 @@ struct ProfileView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
+                // Blue gradient background
                 LinearGradient(
                     gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.blue]),
                     startPoint: .top,
@@ -34,7 +35,7 @@ struct ProfileView: View {
                 )
                 .ignoresSafeArea()
                 
-                // Header with only Edit button (removed back button)
+                // Top header with edit button
                 HStack {
                     Spacer()
                     
@@ -58,6 +59,7 @@ struct ProfileView: View {
                     Spacer().frame(height: 180)
                     
                     VStack(spacing: 16) {
+                        // Followers and following counts
                         HStack(spacing: 200) {
                             Button(action: {
                                 showingFollowers = true
@@ -86,6 +88,7 @@ struct ProfileView: View {
                             }
                         }
                         
+                        // Username and bio section
                         VStack(spacing: 8) {
                             Text(username)
                                 .font(.system(size: 25, weight: .semibold))
@@ -98,6 +101,7 @@ struct ProfileView: View {
                                 .padding(.horizontal, 40)
                         }
                         
+                        // Posts section header
                         VStack(spacing: 8) {
                             HStack {
                                 Text("All Posts")
@@ -118,6 +122,7 @@ struct ProfileView: View {
                                 .padding(.horizontal, 20)
                         }
                         
+                        // Posts grid or empty state
                         ScrollView {
                             if isLoading {
                                 ProgressView()
@@ -136,6 +141,7 @@ struct ProfileView: View {
                                 }
                                 .padding(.top, 50)
                             } else {
+                                // 3x3 grid of user's posts
                                 LazyVGrid(columns: [
                                     GridItem(.flexible()),
                                     GridItem(.flexible()),
@@ -181,6 +187,7 @@ struct ProfileView: View {
                 }
                 .zIndex(1)
                 
+                // Profile picture circle
                 Circle()
                     .fill(Color.white)
                     .frame(width: 100, height: 100)
@@ -219,13 +226,13 @@ struct ProfileView: View {
         isLoading = true
         
         guard let currentUsername = authVM.currentUser?.username else {
-            print("No current user")
+            print("No current user found")
             isLoading = false
             return
         }
         
         guard let url = URL(string: "http://localhost:5001/api/posts") else {
-            print("Invalid URL")
+            print("Bad URL")
             isLoading = false
             return
         }
@@ -243,13 +250,13 @@ struct ProfileView: View {
                     if let username = postData["username"] as? String,
                        let caption = postData["caption"] as? String,
                        let postId = postData["post_id"] as? Int,
-                       username == currentUsername { // Only show your own posts
+                       username == currentUsername { // Only grab your own posts
                         
                         let imageUrl = postData["image_url"] as? String ?? ""
                         
                         let post = BlogPost(
                             id: UUID(),
-                            postId: postId,  // Real database ID
+                            postId: postId,
                             authorName: username.capitalized,
                             authorHandle: "@\(username)",
                             imageName: imageUrl.isEmpty ? "placeholder_image" : imageUrl,
@@ -261,18 +268,19 @@ struct ProfileView: View {
                 }
                 
                 self.userPosts = fetchedPosts
-                print("✅ Loaded \(fetchedPosts.count) posts for user profile")
+                print("✅ Got \(fetchedPosts.count) posts for your profile")
             } else {
-                print("No posts found or invalid response")
+                print("No posts found or bad response")
                 self.userPosts = []
             }
         } catch {
-            print("Error fetching user posts: \(error)")
+            print("Error loading your posts: \(error)")
         }
         
         isLoading = false
     }
     
+    // Helper function for placeholder icons (not currently used but keeping it)
     func getPlaceholderIcon(for index: Int) -> String {
         let icons = ["figure.diving", "sunset", "paintpalette", "leaf"]
         return icons[index % icons.count]

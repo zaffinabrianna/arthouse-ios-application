@@ -2,7 +2,7 @@
 //  ExploreView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/25/25.
+//  Created on 7/25/25.
 //
 
 import SwiftUI

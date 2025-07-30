@@ -1,3 +1,10 @@
+//
+//  FollowersView.swift
+//  Arthouse
+//
+//  Created on 7/25/25.
+//
+
 import SwiftUI
 
 struct FollowersView: View {
@@ -6,12 +13,12 @@ struct FollowersView: View {
     var body: some View {
         ZStack(alignment: .top) {
             
-            // Full-Screen Darker Blue Background
+            // Blue background
             Color(red: 0.5, green: 0.75, blue: 1.0)
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header content (back button + "100 Followers")
+                // Top section with back button and follower count
                 ZStack(alignment: .topLeading) {
                     VStack(spacing: 2) {
                         Text("100")
@@ -26,23 +33,22 @@ struct FollowersView: View {
                     .padding(.bottom, 20)
                     .frame(maxWidth: .infinity)
                     
-                    //Back Button:
+                    // Back button
                     Button(action: {
                         print("Back button tapped")
                     }) {
-                        // BACK BUTTON FRONT-END:
                         Image(systemName: "chevron.left")
-                            .foregroundColor(.black) // Button Text Color
-                            .font(.system(size: 20)) // Button Text Font
-                            .padding(12) // Padding (helps make button bigger)
-                            .background(Color.white.opacity(0.7)) // Button Background
-                            .clipShape(Circle()) // Button Shape         
+                            .foregroundColor(.black)
+                            .font(.system(size: 20))
+                            .padding(12)
+                            .background(Color.white.opacity(0.7))
+                            .clipShape(Circle())
                             .padding(.leading)
                     }
                     .padding(.top, 10)
                 }
                 
-                // Light Blue Section with Rounded Top Corners
+                // Main content area with rounded top corners
                 ZStack {
                     Color(red: 0.9, green: 0.95, blue: 1.0)
                         .clipShape(RoundedCorner(radius: 50, corners: [.topLeft, .topRight]))
@@ -52,6 +58,7 @@ struct FollowersView: View {
                         VStack(spacing: 0) {
                             ForEach(followers.indices, id: \.self) { index in
                                 HStack(spacing: 12) {
+                                    // Profile picture circle
                                     Circle()
                                         .fill(Color.white)
                                         .frame(width: 50, height: 50)
@@ -80,7 +87,7 @@ struct FollowersView: View {
     }
 }
 
-// Utility for custom corner rounding
+// Helper shape for custom corner rounding
 struct RoundedCorner: Shape {
     var radius: CGFloat = 10
     var corners: UIRectCorner = .allCorners
@@ -95,7 +102,6 @@ struct RoundedCorner: Shape {
     }
 }
 
-// Preview
 #Preview {
     FollowersView()
 }

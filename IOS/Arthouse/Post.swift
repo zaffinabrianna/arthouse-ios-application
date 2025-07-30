@@ -2,17 +2,17 @@
 //  Post.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/25/25.
+//  Created on 7/25/25.
 //
 
 import Foundation
 
 struct BlogPost: Identifiable, Hashable {
-    let id: UUID
-    let postId: Int           // NEW: Database post ID for deletion
-    let authorName: String    // e.g. "Name"
-    let authorHandle: String  // e.g. "@Username"
-    let imageName: String     // Image URL or asset name
-    let likeCount: Int
-    let caption: String       // The post caption/description
+    let id: UUID                 // SwiftUI needs this for lists
+    let postId: Int             // Real database ID for deleting posts
+    let authorName: String      // User's display name like "Roberto"
+    let authorHandle: String    // Username with @ like "@roberto"
+    let imageName: String       // Either image URL from server or local asset name
+    let likeCount: Int          // How many likes the post has
+    let caption: String         // What the user wrote about their post
 }

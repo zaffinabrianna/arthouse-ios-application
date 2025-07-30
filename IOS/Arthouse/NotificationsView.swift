@@ -2,7 +2,7 @@
 //  NotificationsView.swift
 //  Arthouse
 //
-//  Created by Roberto Chavez on 7/25/25.
+//  Created on 7/25/25.
 //
 
 import SwiftUI
@@ -13,7 +13,7 @@ struct NotificationsView: View {
             Color(.white).edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 0) {
-                // Header - matches ExploreView exactly
+                // Top header section
                 HStack {
                     Text("Notifications")
                         .font(.system(size: 23, weight: .semibold))
@@ -26,7 +26,7 @@ struct NotificationsView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Centered content - matches ExploreView structure
+                        // Empty state message - centered like ExploreView
                         VStack(spacing: 16) {
                             Image(systemName: "bell.circle")
                                 .font(.system(size: 50))
