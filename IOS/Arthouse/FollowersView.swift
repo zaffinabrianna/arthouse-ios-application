@@ -5,9 +5,12 @@
 //  Created on 7/25/25.
 //
 
+
 import SwiftUI
+import UIKit
 
 struct FollowersView: View {
+    @Environment(\.dismiss) private var dismiss  // Add this to dismiss the sheet
     let followers = Array(repeating: "@Username", count: 12)
     
     var body: some View {
@@ -33,9 +36,9 @@ struct FollowersView: View {
                     .padding(.bottom, 20)
                     .frame(maxWidth: .infinity)
                     
-                    // Back button
+                    // Back button - now actually works
                     Button(action: {
-                        print("Back button tapped")
+                        dismiss()  // This will close the sheet
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.black)
